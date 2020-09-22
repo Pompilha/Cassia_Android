@@ -234,6 +234,11 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
     return new ParcelUuid(HEALTH_THERMOMETER_SERVICE_UUID);
   }
 
+  @Override
+  public byte[] getServiceData() {
+    return new byte[] { 0 };
+  }
+
   private void setTemperatureMeasurementValue(float temperatureMeasurementValue) {
 
     /* Set the org.bluetooth.characteristic.temperature_measurement

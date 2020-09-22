@@ -29,6 +29,9 @@ import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
+import android.bluetooth.le.AdvertisingSet;
+import android.bluetooth.le.AdvertisingSetCallback;
+import android.bluetooth.le.AdvertisingSetParameters;
 import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.content.Context;
 import android.content.Intent;
@@ -43,6 +46,8 @@ import android.widget.Toast;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 
 import io.github.webbluetoothcg.bletestperipheral.ServiceFragment.ServiceFragmentDelegate;
@@ -69,6 +74,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
   private AdvertiseData mAdvScanResponse;
   private AdvertiseSettings mAdvSettings;
   private BluetoothLeAdvertiser mAdvertiser;
+  private Timer mTimer;
   private final AdvertiseCallback mAdvCallback = new AdvertiseCallback() {
     @Override
     public void onStartFailure(int errorCode) {
@@ -117,10 +123,18 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
           mBluetoothDevices.add(device);
           updateConnectedDevicesStatus();
           Log.v(TAG, "Connected to device: " + device.getAddress());
+          if (mAdvertiser != null) { // 连接后停止广播
+            cancelTimer();
+            mAdvertiser.stopAdvertising(mAdvCallback);
+          }
         } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
           mBluetoothDevices.remove(device);
           updateConnectedDevicesStatus();
           Log.v(TAG, "Disconnected from device");
+          if (mAdvertiser != null) { // 断连后开启广播
+            resetTimer();
+//            mAdvertiser.startAdvertising(mAdvSettings, mAdvData, mAdvScanResponse, mAdvCallback);
+          }
         }
       } else {
         mBluetoothDevices.remove(device);
@@ -277,13 +291,12 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
     mBluetoothGattService = mCurrentServiceFragment.getBluetoothGattService();
 
     mAdvSettings = new AdvertiseSettings.Builder()
-        .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
-        .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
+        .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
+        .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
         .setConnectable(true)
         .build();
     mAdvData = new AdvertiseData.Builder()
-        .setIncludeTxPowerLevel(true)
-        .addServiceUuid(mCurrentServiceFragment.getServiceUUID())
+        .addServiceData(mCurrentServiceFragment.getServiceUUID(), mCurrentServiceFragment.getServiceData())
         .build();
     mAdvScanResponse = new AdvertiseData.Builder()
         .setIncludeDeviceName(true)
@@ -333,11 +346,60 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
     mGattServer.addService(mBluetoothGattService);
 
     if (mBluetoothAdapter.isMultipleAdvertisementSupported()) {
+      mBluetoothAdapter.setName("ble-test");
       mAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
-      mAdvertiser.startAdvertising(mAdvSettings, mAdvData, mAdvScanResponse, mAdvCallback);
+//      mAdvertiser.startAdvertising(mAdvSettings, mAdvData, mAdvScanResponse, mAdvCallback);
+      setAdTimerInterval();
     } else {
       mAdvStatus.setText(R.string.status_noLeAdv);
     }
+  }
+
+  // 定时器方式停止广播、更新广播数据、开启广播
+  private void setAdTimerInterval() {
+    mTimer = new Timer();
+    mTimer.scheduleAtFixedRate(new TimerTask() {
+      @Override
+      public void run() {
+        if (mAdvertiser != null) {
+          Log.i(TAG, "adv service data:" + mCurrentServiceFragment.getServiceData()[0]);
+          AdvertiseData advData = new AdvertiseData.Builder()
+                  .addServiceData(mCurrentServiceFragment.getServiceUUID(), mCurrentServiceFragment.getServiceData())
+                  .build();
+
+          AdvertisingSetParameters.Builder parameters = new AdvertisingSetParameters.Builder();
+
+          mAdvertiser.startAdvertisingSet(parameters.setConnectable(true).setInterval(160).setLegacyMode(false).setScannable(false).setAnonymous(false).build(), mAdvData, mAdvScanResponse, null, null, new AdvertisingSetCallback() {
+            @Override
+            public void onAdvertisingSetStarted(AdvertisingSet advertisingSet, int txPower, int status) {
+              super.onAdvertisingSetStarted(advertisingSet, txPower, status);
+            }
+
+            @Override
+            public void onAdvertisingSetStopped(AdvertisingSet advertisingSet) {
+              super.onAdvertisingSetStopped(advertisingSet);
+            }
+
+            @Override
+            public void onAdvertisingEnabled(AdvertisingSet advertisingSet, boolean enable, int status) {
+              super.onAdvertisingEnabled(advertisingSet, enable, status);
+            }
+          });
+//          mAdvertiser.startAdvertising(mAdvSettings, advData, mAdvScanResponse, mAdvCallback);
+        }
+      }
+    }, 0 /* delay */,  1000);
+  }
+
+  private void cancelTimer() {
+    if (mTimer != null) {
+      mTimer.cancel();
+    }
+  }
+
+  private void resetTimer() {
+    cancelTimer();
+    setAdTimerInterval();
   }
 
   @Override
@@ -358,6 +420,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
     if (mBluetoothAdapter.isEnabled() && mAdvertiser != null) {
       // If stopAdvertising() gets called before close() a null
       // pointer exception is raised.
+      cancelTimer();
       mAdvertiser.stopAdvertising(mAdvCallback);
     }
     resetStatusViews();

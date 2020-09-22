@@ -22,6 +22,7 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.ParcelUuid;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -40,6 +41,7 @@ import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
 
 import java.util.Arrays;
+import java.util.Random;
 import java.util.UUID;
 
 public class HeartRateServiceFragment extends ServiceFragment {
@@ -86,6 +88,9 @@ public class HeartRateServiceFragment extends ServiceFragment {
   private BluetoothGattCharacteristic mHeartRateMeasurementCharacteristic;
   private BluetoothGattCharacteristic mBodySensorLocationCharacteristic;
   private BluetoothGattCharacteristic mHeartRateControlPoint;
+
+  private boolean mNotifyOn = false;
+  private int mHeartRate = INITIAL_HEART_RATE_MEASUREMENT_VALUE;
 
   private ServiceFragmentDelegate mDelegate;
 
@@ -180,6 +185,11 @@ public class HeartRateServiceFragment extends ServiceFragment {
     mHeartRateService.addCharacteristic(mHeartRateControlPoint);
   }
 
+  // 生成[min, max]范围内的随机数
+  public int getRandomRange(int min, int max) {
+    Random random = new Random();
+    return random.nextInt(max) % (max - min + 1) + min;
+  }
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -199,9 +209,23 @@ public class HeartRateServiceFragment extends ServiceFragment {
     Button notifyButton = (Button) view.findViewById(R.id.button_heartRateMeasurementNotify);
     notifyButton.setOnClickListener(mNotifyButtonListener);
 
-    setHeartRateMeasurementValue(INITIAL_HEART_RATE_MEASUREMENT_VALUE,
-        INITIAL_EXPENDED_ENERGY);
     setBodySensorLocationValue(LOCATION_OTHER);
+
+    // 每秒更新一次，生成[80, 120]范围内的随机数
+    final Handler handler = new Handler();
+    Runnable runnable = new Runnable() {
+      @Override
+      public void run() {
+        mHeartRate = getRandomRange(80, 120);
+        setHeartRateMeasurementValue(mHeartRate, INITIAL_EXPENDED_ENERGY);
+        if (mNotifyOn) { // 只有开启notify时才上报数据
+          mDelegate.sendNotificationToDevices(mHeartRateMeasurementCharacteristic);
+        }
+        handler.postDelayed(this, 1000);
+      }
+    };
+    handler.postDelayed(runnable, 1000);
+
     return view;
   }
 
@@ -230,6 +254,11 @@ public class HeartRateServiceFragment extends ServiceFragment {
   @Override
   public ParcelUuid getServiceUUID() {
     return new ParcelUuid(HEART_RATE_SERVICE_UUID);
+  }
+
+  @Override
+  public byte[] getServiceData() {
+    return new byte[] { (byte) mHeartRate };
   }
 
   private void setHeartRateMeasurementValue(int heartRateMeasurementValue, int expendedEnergy) {
@@ -311,6 +340,7 @@ public class HeartRateServiceFragment extends ServiceFragment {
     if (indicate) {
       return;
     }
+    mNotifyOn = true;
     getActivity().runOnUiThread(new Runnable() {
       @Override
       public void run() {
@@ -325,6 +355,7 @@ public class HeartRateServiceFragment extends ServiceFragment {
     if (characteristic.getUuid() != HEART_RATE_MEASUREMENT_UUID) {
       return;
     }
+    mNotifyOn = false;
     getActivity().runOnUiThread(new Runnable() {
       @Override
       public void run() {

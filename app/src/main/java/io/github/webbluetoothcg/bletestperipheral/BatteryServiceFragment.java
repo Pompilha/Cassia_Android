@@ -170,6 +170,11 @@ public class BatteryServiceFragment extends ServiceFragment {
     return new ParcelUuid(BATTERY_SERVICE_UUID);
   }
 
+  @Override
+  public byte[] getServiceData() {
+    return new byte[] { 0 };
+  }
+
   private void setBatteryLevel(int newBatteryLevel, View source) {
     mBatteryLevelCharacteristic.setValue(newBatteryLevel,
         BluetoothGattCharacteristic.FORMAT_UINT8, /* offset */ 0);
