@@ -40,3 +40,7 @@ From the app a developer can set the characteristics' values, send notifications
 ### Caveats
 * BLE broadcast uses API level 26, and currently only supports Android 8 or higher versions.
 * Due to hardware chipset dependency, some devices don't have access to this feature. Reference: http://stackoverflow.com/questions/26482611/chipsets-devices-supporting-android-5-ble-peripheral-mode.
+
+### Todo List
+* App add version display
+* Adapt to lower version android
