@@ -73,8 +73,44 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
   private AdvertiseData mAdvData;
   private AdvertiseData mAdvScanResponse;
   private AdvertiseSettings mAdvSettings;
+  private AdvertisingSetParameters mAdvSetParameters;
   private BluetoothLeAdvertiser mAdvertiser;
   private Timer mTimer;
+  private AdvertisingSet mCurrentAdvertisingSet;
+
+  private final AdvertisingSetCallback mAdvSetCallback = new AdvertisingSetCallback() {
+    @Override
+    public void onAdvertisingSetStarted(AdvertisingSet advertisingSet, int txPower, int status) {
+      mCurrentAdvertisingSet = advertisingSet;
+      Log.i(TAG, "advertising set started, status: " + status);
+    }
+
+    @Override
+    public void onAdvertisingSetStopped(AdvertisingSet advertisingSet) {
+      Log.i(TAG, "advertising set stopped");
+    }
+
+    @Override
+    public void onAdvertisingEnabled(AdvertisingSet advertisingSet, boolean enable, int status) {
+      Log.i(TAG, "advertising enabled, status: " + status + ", enable:" + enable);
+    }
+
+    @Override
+    public void onAdvertisingDataSet(AdvertisingSet advertisingSet, int status) {
+      Log.i(TAG, "advertising data set, status: " + status);
+    }
+
+    @Override
+    public void onScanResponseDataSet(AdvertisingSet advertisingSet, int status) {
+      Log.i(TAG, "scan response data set, status: " + status);
+    }
+
+    @Override
+    public void onAdvertisingParametersUpdated(AdvertisingSet advertisingSet, int txPower, int status) {
+      Log.i(TAG, "advertising parameters updated, status: " + status + ", txPower:" + txPower);
+    }
+  };
+
   private final AdvertiseCallback mAdvCallback = new AdvertiseCallback() {
     @Override
     public void onStartFailure(int errorCode) {
@@ -125,7 +161,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
           Log.v(TAG, "Connected to device: " + device.getAddress());
           if (mAdvertiser != null) { // 连接后停止广播
             cancelTimer();
-            mAdvertiser.stopAdvertising(mAdvCallback);
+            mAdvertiser.stopAdvertisingSet(mAdvSetCallback);
           }
         } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
           mBluetoothDevices.remove(device);
@@ -133,7 +169,8 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
           Log.v(TAG, "Disconnected from device");
           if (mAdvertiser != null) { // 断连后开启广播
             resetTimer();
-//            mAdvertiser.startAdvertising(mAdvSettings, mAdvData, mAdvScanResponse, mAdvCallback);
+            mAdvertiser.startAdvertisingSet(mAdvSetParameters, mAdvData, mAdvScanResponse, null, null,
+                    0, 0, mAdvSetCallback);
           }
         }
       } else {
@@ -295,6 +332,12 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
         .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
         .setConnectable(true)
         .build();
+    mAdvSetParameters = new AdvertisingSetParameters.Builder()
+      .setLegacyMode(true)
+      .setConnectable(true)
+      .setScannable(true)
+      .setInterval(160)
+      .setTxPowerLevel(1).build();
     mAdvData = new AdvertiseData.Builder()
         .addServiceData(mCurrentServiceFragment.getServiceUUID(), mCurrentServiceFragment.getServiceData())
         .build();
@@ -348,44 +391,26 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
     if (mBluetoothAdapter.isMultipleAdvertisementSupported()) {
       mBluetoothAdapter.setName("ble-test");
       mAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
-//      mAdvertiser.startAdvertising(mAdvSettings, mAdvData, mAdvScanResponse, mAdvCallback);
-      setAdTimerInterval();
+      mAdvertiser.startAdvertisingSet(mAdvSetParameters, mAdvData, mAdvScanResponse, null, null,
+              0, 0, mAdvSetCallback);
+      startAdDataUpdateTimer();
     } else {
       mAdvStatus.setText(R.string.status_noLeAdv);
     }
   }
 
   // 定时器方式停止广播、更新广播数据、开启广播
-  private void setAdTimerInterval() {
+  private void startAdDataUpdateTimer() {
     mTimer = new Timer();
     mTimer.scheduleAtFixedRate(new TimerTask() {
       @Override
       public void run() {
-        if (mAdvertiser != null) {
+        if (mCurrentAdvertisingSet != null) {
           Log.i(TAG, "adv service data:" + mCurrentServiceFragment.getServiceData()[0]);
           AdvertiseData advData = new AdvertiseData.Builder()
                   .addServiceData(mCurrentServiceFragment.getServiceUUID(), mCurrentServiceFragment.getServiceData())
                   .build();
-
-          AdvertisingSetParameters.Builder parameters = new AdvertisingSetParameters.Builder();
-
-          mAdvertiser.startAdvertisingSet(parameters.setConnectable(true).setInterval(160).setLegacyMode(false).setScannable(false).setAnonymous(false).build(), mAdvData, mAdvScanResponse, null, null, new AdvertisingSetCallback() {
-            @Override
-            public void onAdvertisingSetStarted(AdvertisingSet advertisingSet, int txPower, int status) {
-              super.onAdvertisingSetStarted(advertisingSet, txPower, status);
-            }
-
-            @Override
-            public void onAdvertisingSetStopped(AdvertisingSet advertisingSet) {
-              super.onAdvertisingSetStopped(advertisingSet);
-            }
-
-            @Override
-            public void onAdvertisingEnabled(AdvertisingSet advertisingSet, boolean enable, int status) {
-              super.onAdvertisingEnabled(advertisingSet, enable, status);
-            }
-          });
-//          mAdvertiser.startAdvertising(mAdvSettings, advData, mAdvScanResponse, mAdvCallback);
+          mCurrentAdvertisingSet.setAdvertisingData(advData);
         }
       }
     }, 0 /* delay */,  1000);
@@ -399,7 +424,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
 
   private void resetTimer() {
     cancelTimer();
-    setAdTimerInterval();
+    startAdDataUpdateTimer();
   }
 
   @Override
@@ -421,7 +446,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       // If stopAdvertising() gets called before close() a null
       // pointer exception is raised.
       cancelTimer();
-      mAdvertiser.stopAdvertising(mAdvCallback);
+      mAdvertiser.stopAdvertisingSet(mAdvSetCallback);
     }
     resetStatusViews();
   }
