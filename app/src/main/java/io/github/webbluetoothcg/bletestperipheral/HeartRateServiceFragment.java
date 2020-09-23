@@ -21,6 +21,7 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
+import android.bluetooth.le.AdvertiseData;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.ParcelUuid;
@@ -42,6 +43,8 @@ import android.widget.Toast;
 
 import java.util.Arrays;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 
 public class HeartRateServiceFragment extends ServiceFragment {
@@ -50,8 +53,9 @@ public class HeartRateServiceFragment extends ServiceFragment {
   private static final int MAX_UINT8 = (int) Math.pow(2, 8) - 1;
   private static final int MAX_UINT16 = (int) Math.pow(2, 16) - 1;
   /**
-   * See <a href="https://developer.bluetooth.org/gatt/services/Pages/ServiceViewer.aspx?u=org.bluetooth.service.heart_rate.xml">
-   * Heart Rate Service</a>
+   * See
+   * <a href="https://www.bluetooth.com/specifications/gatt/services/">Heart Rate Service</a>
+   * <a href="https://www.bluetooth.com/specifications/gatt/characteristics/">Characteristics</a>
    */
   private static final UUID HEART_RATE_SERVICE_UUID = UUID
       .fromString("0000180D-0000-1000-8000-00805f9b34fb");
@@ -91,6 +95,7 @@ public class HeartRateServiceFragment extends ServiceFragment {
 
   private boolean mNotifyOn = false;
   private int mHeartRate = INITIAL_HEART_RATE_MEASUREMENT_VALUE;
+  private Timer mTimer;
 
   private ServiceFragmentDelegate mDelegate;
 
@@ -210,23 +215,35 @@ public class HeartRateServiceFragment extends ServiceFragment {
     notifyButton.setOnClickListener(mNotifyButtonListener);
 
     setBodySensorLocationValue(LOCATION_OTHER);
+    startDataUpdateTimer();
 
-    // 每秒更新一次，生成[80, 120]范围内的随机数
-    final Handler handler = new Handler();
-    Runnable runnable = new Runnable() {
+    return view;
+  }
+
+  // 每秒更新一次，生成[80, 120]范围内的随机数，定时器方式更新心率数据并发送
+  private void startDataUpdateTimer() {
+    mTimer = new Timer();
+    mTimer.scheduleAtFixedRate(new TimerTask() {
       @Override
       public void run() {
         mHeartRate = getRandomRange(80, 120);
-        setHeartRateMeasurementValue(mHeartRate, INITIAL_EXPENDED_ENERGY);
+        setHeartRateMeasurementValue(INITIAL_EXPENDED_ENERGY);
         if (mNotifyOn) { // 只有开启notify时才上报数据
           mDelegate.sendNotificationToDevices(mHeartRateMeasurementCharacteristic);
         }
-        handler.postDelayed(this, 1000);
       }
-    };
-    handler.postDelayed(runnable, 1000);
+    }, 0 /* delay */,  1000);
+  }
 
-    return view;
+  private void cancelTimer() {
+    if (mTimer != null) {
+      mTimer.cancel();
+    }
+  }
+
+  private void resetTimer() {
+    cancelTimer();
+    startDataUpdateTimer();
   }
 
   @Override
@@ -242,6 +259,7 @@ public class HeartRateServiceFragment extends ServiceFragment {
 
   @Override
   public void onDetach() {
+    cancelTimer();
     super.onDetach();
     mDelegate = null;
   }
@@ -261,7 +279,7 @@ public class HeartRateServiceFragment extends ServiceFragment {
     return new byte[] { (byte) mHeartRate };
   }
 
-  private void setHeartRateMeasurementValue(int heartRateMeasurementValue, int expendedEnergy) {
+  private void setHeartRateMeasurementValue(int expendedEnergy) {
 
     Log.d(TAG, Arrays.toString(mHeartRateMeasurementCharacteristic.getValue()));
     /* Set the org.bluetooth.characteristic.heart_rate_measurement
@@ -279,16 +297,21 @@ public class HeartRateServiceFragment extends ServiceFragment {
      */
     mHeartRateMeasurementCharacteristic.setValue(new byte[]{0b00001000, 0, 0, 0});
     // Characteristic Value: [flags, 0, 0, 0]
-    mHeartRateMeasurementCharacteristic.setValue(heartRateMeasurementValue,
+    mHeartRateMeasurementCharacteristic.setValue(mHeartRate,
         HEART_RATE_MEASUREMENT_VALUE_FORMAT,
         /* offset */ 1);
     // Characteristic Value: [flags, heart rate value, 0, 0]
-    mEditTextHeartRateMeasurement.setText(Integer.toString(heartRateMeasurementValue));
+    getActivity().runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        mEditTextHeartRateMeasurement.setText(Integer.toString(mHeartRate));
+//        mEditTextEnergyExpended.setText(Integer.toString(expendedEnergy));
+      }
+    });
     mHeartRateMeasurementCharacteristic.setValue(expendedEnergy,
         EXPENDED_ENERGY_FORMAT,
         /* offset */ 2);
     // Characteristic Value: [flags, heart rate value, energy expended (LSB), energy expended (MSB)]
-    mEditTextEnergyExpended.setText(Integer.toString(expendedEnergy));
   }
   private void setBodySensorLocationValue(int location) {
     mBodySensorLocationCharacteristic.setValue(new byte[]{(byte) location});

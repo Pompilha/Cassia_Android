@@ -159,21 +159,29 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
           mBluetoothDevices.add(device);
           updateConnectedDevicesStatus();
           Log.v(TAG, "Connected to device: " + device.getAddress());
-          if (mAdvertiser != null) { // 连接后停止广播
+
+          /* demo需要同时配置数据采集和基于建连的方式，所以还是需要进行广播的
+          // 连接后停止广播
+          if (mAdvertiser != null) {
             cancelTimer();
             mAdvertiser.stopAdvertisingSet(mAdvSetCallback);
             mAdvStatus.setText(R.string.status_notAdvertising);
           }
+          */
         } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
           mBluetoothDevices.remove(device);
           updateConnectedDevicesStatus();
           Log.v(TAG, "Disconnected from device");
-          if (mAdvertiser != null) { // 断连后开启广播
+
+          /* demo需要同时配置数据采集和基于建连的方式，所以还是需要进行广播的
+          // 断连后开启广播
+          if (mAdvertiser != null) {
             resetTimer();
             mAdvertiser.startAdvertisingSet(mAdvSetParameters, mAdvData, mAdvScanResponse, null, null,
                     0, 0, mAdvSetCallback);
             mAdvStatus.setText(R.string.status_advertising);
           }
+          */
         }
       } else {
         mBluetoothDevices.remove(device);
