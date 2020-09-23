@@ -8,13 +8,25 @@ You can build it from source or install it from the [link](https://github.com/Ac
 APP broadcast instructions:
 
 * Device broadcast identification: Name is ble-test.
-* Example of original broadcast package: 02010204160D1862
+* Example of HeartRate broadcast package: 02010204160D1862
+    * 0D18: Heart Rate Service UUID
+    * 62: Heart Rate
 * Example of Scan response package: 0909626C652D74657374
+    * 626c652d74657374: APP(device) Name
 
 A developer can use the app to simulate a BLE Peripheral with one of three services:
 
-* Battery Service
 * Heart Rate Service
+    * The broadcast packet contains heart rate data:
+        * The broadcast packet is updated every second and is a random number between 80 and 120
+        * Broadcast package example: 02010204160D1862
+            * Heart Rate data index is 0x07
+            * Heart Rate data is 0x62
+    * Support notify report data:
+        * Connect App
+        * Open Notify: UUID 00002a37-0000-1000-8000-00805f9b34fb
+        * The notify data is updated every second and is a random number between 80 and 120
+* Battery Service
 * Health Thermometer Service
 
 The developer can use the Cassia Router features to connect to the app to Read and Write Characteristics, Subscribe to Notifications for when the Characteristics change, and Read and Write Descriptors.
