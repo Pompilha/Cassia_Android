@@ -162,6 +162,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
           if (mAdvertiser != null) { // 连接后停止广播
             cancelTimer();
             mAdvertiser.stopAdvertisingSet(mAdvSetCallback);
+            mAdvStatus.setText(R.string.status_notAdvertising);
           }
         } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
           mBluetoothDevices.remove(device);
@@ -171,6 +172,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
             resetTimer();
             mAdvertiser.startAdvertisingSet(mAdvSetParameters, mAdvData, mAdvScanResponse, null, null,
                     0, 0, mAdvSetCallback);
+            mAdvStatus.setText(R.string.status_advertising);
           }
         }
       } else {
@@ -341,6 +343,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
     mAdvData = new AdvertiseData.Builder()
         .addServiceData(mCurrentServiceFragment.getServiceUUID(), mCurrentServiceFragment.getServiceData())
         .build();
+    mBluetoothAdapter.setName("ble-test");
     mAdvScanResponse = new AdvertiseData.Builder()
         .setIncludeDeviceName(true)
         .build();
@@ -389,11 +392,11 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
     mGattServer.addService(mBluetoothGattService);
 
     if (mBluetoothAdapter.isMultipleAdvertisementSupported()) {
-      mBluetoothAdapter.setName("ble-test");
       mAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
       mAdvertiser.startAdvertisingSet(mAdvSetParameters, mAdvData, mAdvScanResponse, null, null,
               0, 0, mAdvSetCallback);
       startAdDataUpdateTimer();
+      mAdvStatus.setText(R.string.status_advertising);
     } else {
       mAdvStatus.setText(R.string.status_noLeAdv);
     }
@@ -447,6 +450,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       // pointer exception is raised.
       cancelTimer();
       mAdvertiser.stopAdvertisingSet(mAdvSetCallback);
+      mAdvStatus.setText(R.string.status_notAdvertising);
     }
     resetStatusViews();
   }
