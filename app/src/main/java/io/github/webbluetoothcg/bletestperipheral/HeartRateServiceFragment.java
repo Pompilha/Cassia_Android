@@ -95,6 +95,7 @@ public class HeartRateServiceFragment extends ServiceFragment {
 
   private boolean mNotifyOn = false;
   private int mHeartRate = INITIAL_HEART_RATE_MEASUREMENT_VALUE;
+  private int mTemperature = 3680;
   private Timer mTimer;
 
   private ServiceFragmentDelegate mDelegate;
@@ -220,19 +221,22 @@ public class HeartRateServiceFragment extends ServiceFragment {
     return view;
   }
 
-  // 每秒更新一次，生成[80, 120]范围内的随机数，定时器方式更新心率数据并发送
+  // 每秒更新一次，生成随机心率和体温
+  // 心率：生成[50, 140]范围内的随机数，定时器方式更新心率数据并Notify发送
+  // 体温：生成[3500, 4000]范围内的随机数，定时器方式更新体温数据并广播
   private void startDataUpdateTimer() {
     mTimer = new Timer();
     mTimer.scheduleAtFixedRate(new TimerTask() {
       @Override
       public void run() {
-        mHeartRate = getRandomRange(80, 120);
+        mHeartRate = getRandomRange(50, 140);
+        mTemperature = getRandomRange(3500, 4000);
         setHeartRateMeasurementValue(INITIAL_EXPENDED_ENERGY);
         if (mNotifyOn) { // 只有开启notify时才上报数据
           mDelegate.sendNotificationToDevices(mHeartRateMeasurementCharacteristic);
         }
       }
-    }, 0 /* delay */,  1000);
+    }, 0 /* delay */,  500);
   }
 
   private void cancelTimer() {
@@ -278,6 +282,22 @@ public class HeartRateServiceFragment extends ServiceFragment {
   public byte[] getServiceData() {
     return new byte[] { (byte) mHeartRate };
   }
+
+  @Override
+  public byte[] getManufacturerData() {
+    return int2bytesBE(mTemperature);
+  }
+
+  // int 转 byte数组，大端
+  public static byte[] int2bytesBE(int n) {
+    byte[] b = new byte[4];
+    b[3] = (byte) (n & 0xff);
+    b[2] = (byte) (n >> 8 & 0xff);
+    b[1] = (byte) (n >> 16 & 0xff);
+    b[0] = (byte) (n >> 24 & 0xff);
+    return b;
+  }
+
 
   private void setHeartRateMeasurementValue(int expendedEnergy) {
 

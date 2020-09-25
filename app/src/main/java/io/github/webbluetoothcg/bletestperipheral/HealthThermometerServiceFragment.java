@@ -239,6 +239,11 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
     return new byte[] { 0 };
   }
 
+  @Override
+  public byte[] getManufacturerData() {
+    return new byte[] { 0 };
+  }
+
   private void setTemperatureMeasurementValue(float temperatureMeasurementValue) {
 
     /* Set the org.bluetooth.characteristic.temperature_measurement

@@ -7,15 +7,14 @@ You can build it from source or install it from the [link](https://github.com/Ac
 
 APP broadcast instructions:
 
-* Device broadcast identification: Name is ble-test.
+* Device broadcast identification: Name is Cassia Tester.
 * Parameters: LegacyMode, Connectable, Scannable, Interval(160ms), TxPowerLevel(1)
-* Example of HeartRate broadcast package: 02010204160D1862
-    * 0D18: Heart Rate Service UUID
-    * 62: Heart Rate
-* Example of Scan response package: 0909626C652D74657374
-    * 626c652d74657374: APP(device) Name
+* Example broadcast package: 02010207FFFF0000000E07
+    * 0E07: temperature * 100 = 35.91
+* Example of Scan response package: 1A0943617373696120546573746572
+    * 43617373696120546573746572: Cassia Tester
 
-A developer can use the app to simulate a BLE Peripheral with one of three services:
+A developer can use the app to simulate a BLE Peripheral with one of these services:
 
 * Heart Rate Service
     * The broadcast packet contains heart rate data:
@@ -27,16 +26,12 @@ A developer can use the app to simulate a BLE Peripheral with one of three servi
         * Connect App
         * Open Notify: UUID 00002a37-0000-1000-8000-00805f9b34fb
         * The notify data is updated every second and is a random number between 80 and 120
-* Battery Service
-* Health Thermometer Service
 
 The developer can use the Cassia Router features to connect to the app to Read and Write Characteristics, Subscribe to Notifications for when the Characteristics change, and Read and Write Descriptors.
 
 From the app a developer can set the characteristics' values, send notifications and disconnect.
 
-![Battery Service](Battery%20Service.png)
 ![Heart Rate Service](Heart%20Rate%20Service.png)
-![Health Thermometer Service](Health%20Thermometer%20Service.png)
 
 ### Caveats
 * Please keep the App front when using.
@@ -46,6 +41,7 @@ From the app a developer can set the characteristics' values, send notifications
 
 ### Todo List
 * App add stopping-advertising switch
+* App add temperature display
 * App add version display
 * App disconnect function
 * Adapt to lower version android

@@ -23,6 +23,7 @@ import android.bluetooth.BluetoothGattService;
 import android.os.ParcelUuid;
 
 public abstract class ServiceFragment extends Fragment{
+  public abstract byte[] getManufacturerData();
   public abstract byte[] getServiceData();
   public abstract BluetoothGattService getBluetoothGattService();
   public abstract ParcelUuid getServiceUUID();

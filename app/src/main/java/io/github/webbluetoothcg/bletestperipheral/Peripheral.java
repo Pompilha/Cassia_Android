@@ -319,9 +319,9 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       int peripheralIndex = getIntent().getIntExtra(Peripherals.EXTRA_PERIPHERAL_INDEX,
           /* default */ -1);
       if (peripheralIndex == 0) {
-        mCurrentServiceFragment = new BatteryServiceFragment();
-      } else if (peripheralIndex == 1) {
         mCurrentServiceFragment = new HeartRateServiceFragment();
+      } else if (peripheralIndex == 1) {
+        mCurrentServiceFragment = new BatteryServiceFragment();
       } else if (peripheralIndex == 2) {
         mCurrentServiceFragment = new HealthThermometerServiceFragment();
       } else {
@@ -349,9 +349,9 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       .setInterval(160)
       .setTxPowerLevel(1).build();
     mAdvData = new AdvertiseData.Builder()
-        .addServiceData(mCurrentServiceFragment.getServiceUUID(), mCurrentServiceFragment.getServiceData())
+        .addManufacturerData(0xFF, mCurrentServiceFragment.getManufacturerData())
         .build();
-    mBluetoothAdapter.setName("ble-test");
+    mBluetoothAdapter.setName("Cassia Tester");
     mAdvScanResponse = new AdvertiseData.Builder()
         .setIncludeDeviceName(true)
         .build();
@@ -419,12 +419,12 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
         if (mCurrentAdvertisingSet != null) {
           Log.i(TAG, "adv service data:" + mCurrentServiceFragment.getServiceData()[0]);
           AdvertiseData advData = new AdvertiseData.Builder()
-                  .addServiceData(mCurrentServiceFragment.getServiceUUID(), mCurrentServiceFragment.getServiceData())
+                  .addManufacturerData(0xFF, mCurrentServiceFragment.getManufacturerData())
                   .build();
           mCurrentAdvertisingSet.setAdvertisingData(advData);
         }
       }
-    }, 0 /* delay */,  1000);
+    }, 0 /* delay */,  500);
   }
 
   private void cancelTimer() {
