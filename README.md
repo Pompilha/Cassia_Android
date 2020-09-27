@@ -7,7 +7,7 @@ You can build it from source or install it from the [link](https://github.com/Ac
 
 APP broadcast instructions:
 
-* Device broadcast identification: Name is Cassia Tester.
+* Device broadcast identification: Name is Cassia Demo App.
 * Parameters: LegacyMode, Connectable, Scannable, Interval(160ms), TxPowerLevel(1)
 * The broadcast packet is updated every 0.5 second and is a random number between 50 and 140
 * Example broadcast package: 02010207FFFF0000000E07
