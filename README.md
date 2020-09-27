@@ -9,7 +9,7 @@ APP broadcast instructions:
 
 * Device broadcast identification: Name is Cassia Demo App.
 * Parameters: LegacyMode, Connectable, Scannable, Interval(160ms), TxPowerLevel(1)
-* The broadcast packet is updated every 0.5 second and is a random number between 50 and 140
+* The broadcast packet is updated every 0.5 second and the temperature data is a random number between 35.00 and 40.00
 * Example broadcast package: 02010207FFFF0000000E07
     * 0E07: temperature * 100 = 35.91
 * Example of Scan response package: 12094361737369612044656d6f20417070
