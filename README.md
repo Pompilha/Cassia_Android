@@ -21,7 +21,7 @@ A developer can use the app to simulate a BLE Peripheral with one of these servi
     * Support notify report data:
         * Connect App
         * Open Notify: UUID 00002a37-0000-1000-8000-00805f9b34fb
-        * The notify data is updated every second and is a random number between 80 and 120
+        * The notify data is updated every 0.5 second and is a random number between 80 and 120
 
 The developer can use the Cassia Router features to connect to the app to Read and Write Characteristics, Subscribe to Notifications for when the Characteristics change, and Read and Write Descriptors.
 
