@@ -9,19 +9,15 @@ APP broadcast instructions:
 
 * Device broadcast identification: Name is Cassia Tester.
 * Parameters: LegacyMode, Connectable, Scannable, Interval(160ms), TxPowerLevel(1)
+* The broadcast packet is updated every 0.5 second and is a random number between 50 and 140
 * Example broadcast package: 02010207FFFF0000000E07
     * 0E07: temperature * 100 = 35.91
-* Example of Scan response package: 1A0943617373696120546573746572
-    * 43617373696120546573746572: Cassia Tester
+* Example of Scan response package: 12094361737369612044656d6f20417070
+    * 4361737369612044656d6f20417070: Cassia Demo App
 
 A developer can use the app to simulate a BLE Peripheral with one of these services:
 
 * Heart Rate Service
-    * The broadcast packet contains heart rate data:
-        * The broadcast packet is updated every second and is a random number between 80 and 120
-        * Broadcast package example: 02010204160D1862
-            * Heart Rate data index is 0x07
-            * Heart Rate data is 0x62
     * Support notify report data:
         * Connect App
         * Open Notify: UUID 00002a37-0000-1000-8000-00805f9b34fb
