@@ -351,7 +351,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
     mAdvData = new AdvertiseData.Builder()
         .addManufacturerData(0xFF, mCurrentServiceFragment.getManufacturerData())
         .build();
-    mBluetoothAdapter.setName("Cassia Tester");
+    mBluetoothAdapter.setName("Cassia Demo App");
     mAdvScanResponse = new AdvertiseData.Builder()
         .setIncludeDeviceName(true)
         .build();
