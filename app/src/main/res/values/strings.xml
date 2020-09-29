@@ -51,6 +51,11 @@
     <string name="heartRateMeasurementValueInvalid">Please enter a number between 0 and 255</string>
     <string name="energyExpendedInvalid">Please enter a number between 0 and 65535</string>
 
+    <!-- User Define Service -->
+    <string name="userDefineServiceName">User Define Service</string>
+    <string name="label_dateTime">Date Time</string>
+    <string name="label_message">Message</string>
+
     <!-- Health Thermometer Service -->
     <string name="healthThermometerServiceName">Health Thermometer Service</string>
     <string name="label_temperatureMeasurementValue">Temperature (°C)</string>

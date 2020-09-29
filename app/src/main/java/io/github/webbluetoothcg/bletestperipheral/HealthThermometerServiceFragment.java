@@ -225,8 +225,8 @@ public class HealthThermometerServiceFragment extends ServiceFragment {
   }
 
   @Override
-  public BluetoothGattService getBluetoothGattService() {
-    return mHealthThermometerService;
+  public BluetoothGattService[] getBluetoothGattService() {
+    return new BluetoothGattService[] {mHealthThermometerService};
   }
 
   @Override

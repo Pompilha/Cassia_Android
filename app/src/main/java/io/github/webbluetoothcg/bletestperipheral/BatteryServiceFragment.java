@@ -161,8 +161,8 @@ public class BatteryServiceFragment extends ServiceFragment {
     mDelegate = null;
   }
 
-  public BluetoothGattService getBluetoothGattService() {
-    return mBatteryService;
+  public BluetoothGattService[] getBluetoothGattService() {
+    return new BluetoothGattService[] { mBatteryService };
   }
 
   @Override

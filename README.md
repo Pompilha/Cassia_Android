@@ -22,6 +22,25 @@ A developer can use the app to simulate a BLE Peripheral with one of these servi
         * Connect App
         * Open Notify: UUID 00002a37-0000-1000-8000-00805f9b34fb
         * The notify data is updated every 0.5 second and is a random number between 80 and 120
+* User Define Service
+    * Set date time: 24-hour clock
+        * Connect App
+        * Write Command to UUID 0000fff1-0000-1000-8000-00805f9b34fb
+        * Command: 0107e4091d161718
+            * 01: Occupies 1 byte, Set date time command
+            * 07e4: Occupies 2 byte, Big endian, Year, 0x07e4 -> 2020
+            * 09: Occupies 1 byte, Month, 0x09 -> 09 September
+            * 1d: Occupies 1 byte, Day, 0x1d -> 29 Day 29
+            * 16: Occupies 1 byte, Hour, 0x16 -> 22 22 o'clock
+            * 17: Occupies 1 byte, Minute, 0x17 -> 23
+            * 18: Occupies 1 byte, Second, 0x18 -> 24
+            * 07e4091d161718 -> 2020-09-29 22:23:24
+    * Send BLE SMS
+        * Connect App
+        * Write Command to UUID 0000fff1-0000-1000-8000-00805f9b34fb
+        * Command: 0248656c6c6f20576f726c6421
+            * 02: Occupies 1 byte, Send BLE SMS command
+            * 48656c6c6f20576f726c6421: Message, utf-8 encoded, 48656c6c6f20576f726c6421 -> Hello World!
 
 The developer can use the Cassia Router features to connect to the app to Read and Write Characteristics, Subscribe to Notifications for when the Characteristics change, and Read and Write Descriptors.
 

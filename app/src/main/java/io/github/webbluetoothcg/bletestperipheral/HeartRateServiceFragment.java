@@ -41,6 +41,7 @@ import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.Timer;
@@ -93,6 +94,15 @@ public class HeartRateServiceFragment extends ServiceFragment {
   private BluetoothGattCharacteristic mBodySensorLocationCharacteristic;
   private BluetoothGattCharacteristic mHeartRateControlPoint;
 
+  // 增加自定义char，支持校时、发送短信
+  private static final UUID USER_DEFINE_SERVICE_UUID = UUID.fromString("0000fff0-0000-1000-8000-00805f9b34fb");
+  private static final UUID USER_DEFINE_CHAR_UUID = UUID.fromString("0000fff1-0000-1000-8000-00805f9b34fb");
+
+  private BluetoothGattService mUserDefineService;
+  private BluetoothGattCharacteristic mUserDefineChar;
+  private String mDateTime;
+  private String mMessage;
+
   private boolean mNotifyOn = false;
   private int mHeartRate = INITIAL_HEART_RATE_MEASUREMENT_VALUE;
   private int mTemperature = 3680;
@@ -101,6 +111,10 @@ public class HeartRateServiceFragment extends ServiceFragment {
   private ServiceFragmentDelegate mDelegate;
 
   private EditText mEditTextHeartRateMeasurement;
+
+  private EditText mEditDateTime;
+  private EditText mEditMessage;
+
   private final OnEditorActionListener mOnEditorActionListenerHeartRateMeasurement = new OnEditorActionListener() {
     @Override
     public boolean onEditorAction(TextView textView, int actionId, KeyEvent event) {
@@ -189,6 +203,14 @@ public class HeartRateServiceFragment extends ServiceFragment {
     mHeartRateService.addCharacteristic(mHeartRateMeasurementCharacteristic);
     mHeartRateService.addCharacteristic(mBodySensorLocationCharacteristic);
     mHeartRateService.addCharacteristic(mHeartRateControlPoint);
+
+    // 增加自定义char，只支持写入时间、短信
+    mUserDefineChar = new BluetoothGattCharacteristic(USER_DEFINE_CHAR_UUID,
+            BluetoothGattCharacteristic.PROPERTY_WRITE,
+            BluetoothGattCharacteristic.PERMISSION_WRITE);
+    mUserDefineService = new BluetoothGattService(USER_DEFINE_SERVICE_UUID,
+            BluetoothGattService.SERVICE_TYPE_PRIMARY);
+    mUserDefineService.addCharacteristic(mUserDefineChar);
   }
 
   // 生成[min, max]范围内的随机数
@@ -201,9 +223,14 @@ public class HeartRateServiceFragment extends ServiceFragment {
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
       Bundle savedInstanceState) {
 
+    // 获取各个控件并注册事件
     View view = inflater.inflate(R.layout.fragment_heart_rate, container, false);
     mSpinnerBodySensorLocation = (Spinner) view.findViewById(R.id.spinner_bodySensorLocation);
     mSpinnerBodySensorLocation.setOnItemSelectedListener(mLocationSpinnerOnItemSelectedListener);
+
+    // 设置下拉列表为禁用状态
+    mSpinnerBodySensorLocation.setEnabled(false);
+
     mEditTextHeartRateMeasurement = (EditText) view
         .findViewById(R.id.editText_heartRateMeasurementValue);
     mEditTextHeartRateMeasurement
@@ -215,7 +242,14 @@ public class HeartRateServiceFragment extends ServiceFragment {
     Button notifyButton = (Button) view.findViewById(R.id.button_heartRateMeasurementNotify);
     notifyButton.setOnClickListener(mNotifyButtonListener);
 
+    // User Define Service相关控件
+    mEditDateTime = (EditText) view.findViewById(R.id.editText_dateTimeValue);
+    mEditMessage = (EditText) view.findViewById(R.id.editText_messageValue);
+
+    // 设置控件默认值
     setBodySensorLocationValue(LOCATION_OTHER);
+
+    // 其他初始化动作
     startDataUpdateTimer();
 
     return view;
@@ -269,8 +303,9 @@ public class HeartRateServiceFragment extends ServiceFragment {
   }
 
   @Override
-  public BluetoothGattService getBluetoothGattService() {
-    return mHeartRateService;
+  public BluetoothGattService[] getBluetoothGattService() {
+    return new BluetoothGattService[] { mHeartRateService, mUserDefineService };
+//    return new BluetoothGattService[] { mUserDefineService };
   }
 
   @Override
@@ -298,6 +333,10 @@ public class HeartRateServiceFragment extends ServiceFragment {
     return b;
   }
 
+  // byte[2]转short，大端
+  public static short bytes2shortBE(byte[] bytes) {
+    return (short) ((bytes[0] & 0xff) << 8 | (bytes[1] & 0xff));
+  }
 
   private void setHeartRateMeasurementValue(int expendedEnergy) {
 
@@ -358,19 +397,50 @@ public class HeartRateServiceFragment extends ServiceFragment {
     if (offset != 0) {
       return BluetoothGatt.GATT_INVALID_OFFSET;
     }
-    // Heart Rate control point is a 8bit characteristic
-    if (value.length != 1) {
-      return BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH;
-    }
-    if ((value[0] & 1) == 1) {
-      getActivity().runOnUiThread(new Runnable() {
-        @Override
-        public void run() {
-          mHeartRateMeasurementCharacteristic.setValue(INITIAL_EXPENDED_ENERGY,
-              EXPENDED_ENERGY_FORMAT, /* offset */ 2);
-          mEditTextEnergyExpended.setText(Integer.toString(INITIAL_EXPENDED_ENERGY));
+    if (characteristic.getUuid() == HEART_RATE_MEASUREMENT_UUID) {
+        // Heart Rate control point is a 8bit characteristic
+        if (value.length != 1) {
+            return BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH;
         }
-      });
+        if ((value[0] & 1) == 1) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mHeartRateMeasurementCharacteristic.setValue(INITIAL_EXPENDED_ENERGY,
+                            EXPENDED_ENERGY_FORMAT, /* offset */ 2);
+                    mEditTextEnergyExpended.setText(Integer.toString(INITIAL_EXPENDED_ENERGY));
+                }
+            });
+        }
+    } else if (characteristic.getUuid() == USER_DEFINE_CHAR_UUID) {
+        // cassia自定义命令: 第1个字节为命令字, 0x01 - 设置时间, 0x02 - 发送短信
+        // 设置时间: 07e4091d010101，年月日时分秒
+        // 发送短信：48656c6c6f20576f726c6421，Hello World!
+        byte cmd = value[0];
+        byte[] payload = new byte[value.length - 1];
+        System.arraycopy(value, 1, payload, 0, payload.length);
+        if (cmd == 0x01) {
+          if (payload.length != 7) {
+            return BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH;
+          }
+          byte[] yearBytes = Arrays.copyOfRange(payload, 0, 2);
+          mDateTime = String.format("%4d-%02d-%02d %02d:%02d:%02d",
+                  bytes2shortBE(yearBytes), payload[2], payload[3], payload[4], payload[5], payload[6]);
+          getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+              mEditDateTime.setText(mDateTime);
+            }
+          });
+        } else if (cmd == 0x02) {
+          mMessage = new String(payload, StandardCharsets.UTF_8);
+          getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+              mEditMessage.setText(mMessage);
+            }
+          });
+        }
     }
     return BluetoothGatt.GATT_SUCCESS;
   }

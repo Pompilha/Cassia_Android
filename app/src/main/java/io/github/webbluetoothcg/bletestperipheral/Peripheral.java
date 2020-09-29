@@ -66,7 +66,6 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
   private TextView mAdvStatus;
   private TextView mConnectionStatus;
   private ServiceFragment mCurrentServiceFragment;
-  private BluetoothGattService mBluetoothGattService;
   private HashSet<BluetoothDevice> mBluetoothDevices;
   private BluetoothManager mBluetoothManager;
   private BluetoothAdapter mBluetoothAdapter;
@@ -77,6 +76,8 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
   private BluetoothLeAdvertiser mAdvertiser;
   private Timer mTimer;
   private AdvertisingSet mCurrentAdvertisingSet;
+  private BluetoothGattService[] mServices;
+  private boolean[] mIsServiceAdded;
 
   private final AdvertisingSetCallback mAdvSetCallback = new AdvertisingSetCallback() {
     @Override
@@ -151,6 +152,27 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
 
   private BluetoothGattServer mGattServer;
   private final BluetoothGattServerCallback mGattServerCallback = new BluetoothGattServerCallback() {
+    @Override
+    public void onServiceAdded(int status, BluetoothGattService service) {
+      super.onServiceAdded(status, service);
+      int index = getServiceIndexByUUID(service.getUuid());
+      if (index != -1) {
+        mIsServiceAdded[index] = true; // 标记此service已添加成功
+        Log.i(TAG, "add service ok:" + service.getUuid().toString());
+      }
+      // 找到下个未添加成功的继续添加
+      addServiceOneByOne();
+    }
+
+    private int getServiceIndexByUUID(UUID uuid) {
+      for (int index = 0; index < mServices.length; index++) {
+        if (mServices[index].getUuid().equals(uuid)) {
+          return index;
+        }
+      }
+      return -1;
+    }
+
     @Override
     public void onConnectionStateChange(BluetoothDevice device, final int status, int newState) {
       super.onConnectionStateChange(device, status, newState);
@@ -335,8 +357,12 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       mCurrentServiceFragment = (ServiceFragment) getFragmentManager()
           .findFragmentByTag(CURRENT_FRAGMENT_TAG);
     }
-    mBluetoothGattService = mCurrentServiceFragment.getBluetoothGattService();
 
+    mServices = mCurrentServiceFragment.getBluetoothGattService(); // 获取所有的导出services
+    mIsServiceAdded = new boolean[mServices.length];
+    for (int index = 0; index < mServices.length; index++) {
+      mIsServiceAdded[index] = false;
+    }
     mAdvSettings = new AdvertiseSettings.Builder()
         .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
         .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
@@ -397,7 +423,9 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
     }
     // Add a service for a total of three services (Generic Attribute and Generic Access
     // are present by default).
-    mGattServer.addService(mBluetoothGattService);
+    if (mServices != null && mServices.length > 0) {
+      mGattServer.addService(mServices[0]);
+    }
 
     if (mBluetoothAdapter.isMultipleAdvertisementSupported()) {
       mAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
@@ -408,6 +436,16 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
     } else {
       mAdvStatus.setText(R.string.status_noLeAdv);
     }
+  }
+
+  // 从services中获取未加入的，加入之
+  private boolean addServiceOneByOne() {
+    for (int index = 0; index < mIsServiceAdded.length; index++) {
+      if (!mIsServiceAdded[index] && mGattServer != null) {
+        return mGattServer.addService(mServices[index]);
+      }
+    }
+    return false;
   }
 
   // 定时器方式停止广播、更新广播数据、开启广播
