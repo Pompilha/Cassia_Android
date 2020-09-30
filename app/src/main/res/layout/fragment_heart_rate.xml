@@ -17,7 +17,7 @@
              xmlns:tools="http://schemas.android.com/tools"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
-             tools:context="io.github.webbluetoothcg.bletestperipheral.HeartRateServiceFragment">
+             tools:context="io.github.webbluetoothcg.bletestperipheral.CassiaDemoServicesFragment">
 
     <TextView
             android:id="@+id/textView_heartRateServiceName"
@@ -30,124 +30,24 @@
             android:id="@+id/gridLayout_heartRateCharacteristicsValues"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:rowCount="2"
-            android:columnCount="3"
+            android:rowCount="1"
+            android:columnCount="10"
             android:layout_below="@id/textView_heartRateServiceName">
         <TextView
-                android:id="@+id/label_bodySensorLocation"
-                android:text="@string/label_bodySensorLocation"
-                android:textAppearance="@style/label"
-                android:layout_gravity="fill"
-                android:layout_columnWeight="1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-        <TextView
-                android:id="@+id/label_heartRateMeasurementValue"
-                android:text="@string/label_heartRateMeasurementValue"
-                android:textAppearance="@style/label"
-                android:layout_gravity="fill"
-                android:layout_columnWeight="1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-        <TextView
-                android:id="@+id/label_energyExpended"
-                android:text="@string/label_energyExpended"
-                android:visibility="gone"
-                android:textAppearance="@style/label"
-                android:layout_gravity="fill"
-                android:layout_columnWeight="1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-        <Spinner
-                android:id="@+id/spinner_bodySensorLocation"
-                android:layout_columnWeight="1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:entries="@array/location_values"/>
+            android:id="@+id/label_heartRateMeasurementValue"
+            android:text="@string/label_heartRateMeasurementValue"
+            android:textAppearance="@style/label"
+            android:layout_gravity="fill"
+            android:layout_columnSpan="2"
+            android:gravity="center"
+            />
         <EditText
-                android:id="@+id/editText_heartRateMeasurementValue"
-                android:ems="3"
-                android:textAppearance="@style/label"
-                android:maxLength="3"
-                android:gravity="center"
-                android:inputType="number"
-                android:layout_columnWeight="1"
-                android:enabled="false"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-        <EditText
-                android:id="@+id/editText_energyExpended"
-                android:textAppearance="@style/label"
-                android:ems="4"
-                android:maxLength="5"
-                android:gravity="center"
-                android:inputType="number"
-                android:visibility="gone"
-                android:enabled="false"
-                android:layout_columnWeight="1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-    </GridLayout>
-    <Button
-            android:id="@+id/button_heartRateMeasurementNotify"
-            android:textColor="@color/accent"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/notify"
-            android:visibility="gone"
-            android:layout_below="@id/gridLayout_heartRateCharacteristicsValues"/>
-
-    <TextView
-        android:id="@+id/textView_userDefineServiceName"
-        android:text="@string/userDefineServiceName"
-        android:textAppearance="@style/subheader"
-        android:gravity="center_vertical"
-        android:layout_width="wrap_content"
-        android:layout_below="@id/button_heartRateMeasurementNotify"
-        android:layout_height="48dp"/>
-
-    <GridLayout
-        android:id="@+id/gridLayout_userDefineCharacteristicsValues"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:rowCount="2"
-        android:columnCount="10"
-        android:layout_below="@id/textView_userDefineServiceName">
-            <TextView
-                android:id="@+id/label_dateTime"
-                android:text="@string/label_dateTime"
-                android:textAppearance="@style/label"
-                android:layout_gravity="fill"
-                android:layout_columnSpan="2"
-                android:gravity="center"
-                />
-
-            <EditText
-                android:id="@+id/editText_dateTimeValue"
-                android:enabled="false"
-                android:inputType="datetime"
-                android:layout_gravity="fill"
-                android:layout_columnSpan="8"
-                android:textAppearance="@style/label"
-                android:gravity="center"
-                />
-
-            <TextView
-                android:id="@+id/label_message"
-                android:text="@string/label_message"
-                android:textAppearance="@style/label"
-                android:layout_columnSpan="2"
-                android:layout_gravity="fill"
-                android:gravity="center"
-                />
-            <EditText
-                android:id="@+id/editText_messageValue"
-                android:textAppearance="@style/label"
-                android:inputType="text"
-                android:enabled="false"
-                android:layout_columnSpan="8"
-                android:layout_gravity="fill"
-                android:gravity="center"
-                />
+            android:id="@+id/editText_heartRateMeasurementValue"
+            android:layout_gravity="fill"
+            android:layout_columnSpan="8"
+            android:textAppearance="@style/label"
+            android:gravity="center"
+            android:enabled="false"
+            />
     </GridLayout>
 </RelativeLayout>

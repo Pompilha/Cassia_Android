@@ -98,7 +98,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
 
     @Override
     public void onAdvertisingDataSet(AdvertisingSet advertisingSet, int status) {
-      Log.i(TAG, "advertising data set, status: " + status);
+//      Log.i(TAG, "advertising data set, status: " + status);
     }
 
     @Override
@@ -342,10 +342,6 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
           /* default */ -1);
       if (peripheralIndex == 0) {
         mCurrentServiceFragment = new HeartRateServiceFragment();
-      } else if (peripheralIndex == 1) {
-        mCurrentServiceFragment = new BatteryServiceFragment();
-      } else if (peripheralIndex == 2) {
-        mCurrentServiceFragment = new HealthThermometerServiceFragment();
       } else {
         Log.wtf(TAG, "Service doesn't exist");
       }
@@ -455,7 +451,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       @Override
       public void run() {
         if (mCurrentAdvertisingSet != null) {
-          Log.i(TAG, "adv service data:" + mCurrentServiceFragment.getServiceData()[0]);
+//          Log.i(TAG, "adv service data:" + mCurrentServiceFragment.getServiceData()[0]);
           AdvertiseData advData = new AdvertiseData.Builder()
                   .addManufacturerData(0xFF, mCurrentServiceFragment.getManufacturerData())
                   .build();
