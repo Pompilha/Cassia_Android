@@ -29,6 +29,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -36,9 +37,14 @@ import java.util.UUID;
 public class CassiaDemoDeviceFragment extends ServiceFragment {
   private static final String TAG = CassiaDemoDeviceFragment.class.getCanonicalName();
 
+  private ArrayList<BluetoothGattService> mServices = new ArrayList<>();
+
   // Current Time Service
   private static final UUID CURRENT_TIME_SERVICE_UUID = UUID.fromString("00001805-0000-1000-8000-00805f9b34fb");
-  
+  private static final UUID CURRENT_TIME_CHAR_UUID = UUID.fromString("00002A2B-0000-1000-8000-00805f9b34fb");
+
+  // Current Time vars
+  private BluetoothGattCharacteristic mCurrentTimeChar;
 
   // HeartRate Service UI
   private EditText mEditTextHeartRateMeasurement;
@@ -50,7 +56,6 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
   private static final int HEART_RATE_MEASUREMENT_VALUE_FORMAT = BluetoothGattCharacteristic.FORMAT_UINT8;
 
   // HeartRate vars
-  private BluetoothGattService mHeartRateService;
   private BluetoothGattCharacteristic mHeartRateMeasurementCharacteristic;
   private boolean mHeartRateMeasurementNotifyOn = false; // 测量notify开关
   private int mHeartRateMeasurementValue = 60; // 实时心率
@@ -64,7 +69,6 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
   private static final String TEMPERATURE_MEASUREMENT_DESCRIPTION = "This characteristic is used to send a temperature measurement.";
 
   // HealthThermometer vars
-  private BluetoothGattService mHealthThermometerService;
   private BluetoothGattCharacteristic mTemperatureMeasurementCharacteristic;
   private boolean mTemperatureMeasurementNotifyOn = false; // 测量notify开关
   private int mTemperatureMeasurementValue = 3600; // 实时体温
@@ -74,6 +78,17 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
   private Timer mTimer; // 定时器用于更新数据
   private ServiceFragmentDelegate mDelegate;
 
+  // Current Time Service初始化
+  public void createCurrentTimeService() {
+    mCurrentTimeChar = new BluetoothGattCharacteristic(CURRENT_TIME_CHAR_UUID,
+            BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_WRITE, 0);
+    mCurrentTimeChar.addDescriptor(Peripheral.getClientCharacteristicConfigurationDescriptor());
+    BluetoothGattService currentTimeService = new BluetoothGattService(CURRENT_TIME_SERVICE_UUID,
+            BluetoothGattService.SERVICE_TYPE_PRIMARY);
+    currentTimeService.addCharacteristic(mCurrentTimeChar);
+    mServices.add(currentTimeService);
+  }
+
   // Temperature Service初始化
   public void createHealthThermometerService() {
     mTemperatureMeasurementCharacteristic = new BluetoothGattCharacteristic(TEMPERATURE_MEASUREMENT_UUID,
@@ -82,9 +97,10 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
             Peripheral.getClientCharacteristicConfigurationDescriptor());
     mTemperatureMeasurementCharacteristic.addDescriptor(
             Peripheral.getCharacteristicUserDescriptionDescriptor(TEMPERATURE_MEASUREMENT_DESCRIPTION));
-    mHealthThermometerService = new BluetoothGattService(HEALTH_THERMOMETER_SERVICE_UUID,
+    BluetoothGattService healthThermometerService = new BluetoothGattService(HEALTH_THERMOMETER_SERVICE_UUID,
             BluetoothGattService.SERVICE_TYPE_PRIMARY);
-    mHealthThermometerService.addCharacteristic(mTemperatureMeasurementCharacteristic);
+    healthThermometerService.addCharacteristic(mTemperatureMeasurementCharacteristic);
+    mServices.add(healthThermometerService);
   }
 
   // HeartRate Service初始化
@@ -95,13 +111,15 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
             Peripheral.getClientCharacteristicConfigurationDescriptor());
     mHeartRateMeasurementCharacteristic.addDescriptor(
             Peripheral.getCharacteristicUserDescriptionDescriptor(HEART_RATE_MEASUREMENT_DESCRIPTION));
-    mHeartRateService = new BluetoothGattService(HEART_RATE_SERVICE_UUID,
+    BluetoothGattService heartRateService = new BluetoothGattService(HEART_RATE_SERVICE_UUID,
             BluetoothGattService.SERVICE_TYPE_PRIMARY);
-    mHeartRateService.addCharacteristic(mHeartRateMeasurementCharacteristic);
+    heartRateService.addCharacteristic(mHeartRateMeasurementCharacteristic);
+    mServices.add(heartRateService);
   }
 
   // 构造函数
   public CassiaDemoDeviceFragment() {
+    createCurrentTimeService();
     createHeartRateService();
     createHealthThermometerService();
   }
@@ -217,7 +235,7 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
 
   @Override
   public BluetoothGattService[] getBluetoothGattServices() {
-    return new BluetoothGattService[] { mHeartRateService, mHealthThermometerService };
+    return mServices.toArray(new BluetoothGattService[mServices.size()]);
   }
 
   @Override
