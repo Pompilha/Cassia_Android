@@ -17,7 +17,7 @@
              xmlns:tools="http://schemas.android.com/tools"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
-             tools:context="io.github.webbluetoothcg.bletestperipheral.CassiaDemoServicesFragment">
+             tools:context="io.github.webbluetoothcg.bletestperipheral.CassiaDemoDeviceFragment">
 
     <TextView
             android:id="@+id/textView_heartRateServiceName"
@@ -35,7 +35,7 @@
             android:layout_below="@id/textView_heartRateServiceName">
         <TextView
             android:id="@+id/label_heartRateMeasurementValue"
-            android:text="@string/label_heartRateMeasurementValue"
+            android:text="Heart Rate(bpm)"
             android:textAppearance="@style/label"
             android:layout_gravity="fill"
             android:layout_columnSpan="2"
@@ -50,4 +50,38 @@
             android:enabled="false"
             />
     </GridLayout>
+
+    <TextView
+        android:id="@+id/textView_healthThermometerServiceName"
+        android:text="Health Thermometer Service"
+        android:layout_below="@id/gridLayout_heartRateCharacteristicsValues"
+        android:textAppearance="@style/subheader"
+        android:gravity="center_vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"/>
+    <GridLayout
+        android:id="@+id/gridLayout_healthThermometerCharacteristicsValues"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:rowCount="1"
+        android:columnCount="10"
+        android:layout_below="@id/textView_healthThermometerServiceName">
+        <TextView
+            android:id="@+id/label_temperatureMeasurementValue"
+            android:text="Temperature(℃)"
+            android:textAppearance="@style/label"
+            android:layout_gravity="fill"
+            android:layout_columnSpan="2"
+            android:gravity="center"
+            />
+        <EditText
+            android:id="@+id/editText_temperatureMeasurementValue"
+            android:layout_gravity="fill"
+            android:layout_columnSpan="8"
+            android:textAppearance="@style/label"
+            android:gravity="center"
+            android:enabled="false"
+            />
+    </GridLayout>
+
 </RelativeLayout>

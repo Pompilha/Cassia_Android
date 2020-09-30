@@ -20,13 +20,16 @@ import android.app.Fragment;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
+import android.bluetooth.le.AdvertiseData;
 import android.os.ParcelUuid;
 
 public abstract class ServiceFragment extends Fragment{
-  public abstract byte[] getManufacturerData();
-  public abstract byte[] getServiceData();
-  public abstract BluetoothGattService[] getBluetoothGattService();
-  public abstract ParcelUuid getServiceUUID();
+
+  // 设备添加指定的serviceData到广播包中
+  public abstract void addServiceData2AdvBuilder(AdvertiseData.Builder builder);
+
+  // 获取设备所有的services
+  public abstract BluetoothGattService[] getBluetoothGattServices();
 
   /**
    * Function to communicate to the ServiceFragment that a device wants to write to a

@@ -341,7 +341,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       int peripheralIndex = getIntent().getIntExtra(Peripherals.EXTRA_PERIPHERAL_INDEX,
           /* default */ -1);
       if (peripheralIndex == 0) {
-        mCurrentServiceFragment = new HeartRateServiceFragment();
+        mCurrentServiceFragment = new CassiaDemoDeviceFragment();
       } else {
         Log.wtf(TAG, "Service doesn't exist");
       }
@@ -354,7 +354,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
           .findFragmentByTag(CURRENT_FRAGMENT_TAG);
     }
 
-    mServices = mCurrentServiceFragment.getBluetoothGattService(); // 获取所有的导出services
+    mServices = mCurrentServiceFragment.getBluetoothGattServices(); // 获取所有的导出services
     mIsServiceAdded = new boolean[mServices.length];
     for (int index = 0; index < mServices.length; index++) {
       mIsServiceAdded[index] = false;
@@ -370,9 +370,9 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       .setScannable(true)
       .setInterval(160)
       .setTxPowerLevel(1).build();
-    mAdvData = new AdvertiseData.Builder()
-        .addManufacturerData(0xFF, mCurrentServiceFragment.getManufacturerData())
-        .build();
+    AdvertiseData.Builder builder = new AdvertiseData.Builder();
+    mCurrentServiceFragment.addServiceData2AdvBuilder(builder);
+    mAdvData = builder.build();
     mBluetoothAdapter.setName("Cassia Demo App");
     mAdvScanResponse = new AdvertiseData.Builder()
         .setIncludeDeviceName(true)
@@ -452,9 +452,9 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       public void run() {
         if (mCurrentAdvertisingSet != null) {
 //          Log.i(TAG, "adv service data:" + mCurrentServiceFragment.getServiceData()[0]);
-          AdvertiseData advData = new AdvertiseData.Builder()
-                  .addManufacturerData(0xFF, mCurrentServiceFragment.getManufacturerData())
-                  .build();
+          AdvertiseData.Builder builder = new AdvertiseData.Builder();
+          mCurrentServiceFragment.addServiceData2AdvBuilder(builder);
+          AdvertiseData advData = builder.build();
           mCurrentAdvertisingSet.setAdvertisingData(advData);
         }
       }
