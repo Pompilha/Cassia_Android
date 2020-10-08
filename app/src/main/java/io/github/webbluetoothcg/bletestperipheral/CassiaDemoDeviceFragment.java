@@ -43,6 +43,42 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
   private static final UUID CURRENT_TIME_SERVICE_UUID = UUID.fromString("00001805-0000-1000-8000-00805f9b34fb");
   private static final UUID CURRENT_TIME_CHAR_UUID = UUID.fromString("00002A2B-0000-1000-8000-00805f9b34fb");
 
+  // Current Time Vars
+  //
+  private byte[] mCurrentTimeCharValue = new byte[10];
+  /*
+  // Current Time Char 要求返回的时间格式
+  // 示例：2020/10/08 20:06:10 -> e4070a0814060a000000
+  // [0-1] year
+  // [2] month
+  // [3] day
+  // [4] hour
+  // [5] minute
+  // [6] second
+  // [7] dayOfWeek
+  // [8] fractions256
+  // [9] adjustReason
+  struct {
+    org.bluetooth.characteristic.exact_time_256 exactTime256 {
+      org.bluetooth.characteristic.day_date_time dayDateTime {
+        org.bluetooth.characteristic.date_time dateTime {
+          uint16 year;
+          uint8 month;
+          uint8 day;
+          uint8 hour;
+          uint8 minute;
+          uint8 second;
+        };
+        org.bluetooth.characteristic.day_of_week dayOfWeek {
+          uint8 dayOfWeek;
+        };
+      };
+      uint8 Fractions256;
+    };
+    uint8 adjustReason;
+  }
+  */
+
   // Current Time vars
   private BluetoothGattCharacteristic mCurrentTimeChar;
 
@@ -80,9 +116,11 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
 
   // Current Time Service初始化
   public void createCurrentTimeService() {
+    // TODO: notify是否需要补充增加
     mCurrentTimeChar = new BluetoothGattCharacteristic(CURRENT_TIME_CHAR_UUID,
-            BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_WRITE, 0);
-    mCurrentTimeChar.addDescriptor(Peripheral.getClientCharacteristicConfigurationDescriptor());
+            BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_WRITE,
+            BluetoothGattCharacteristic.PERMISSION_READ | BluetoothGattCharacteristic.PERMISSION_WRITE);
+    mCurrentTimeChar.setValue(mCurrentTimeCharValue);
     BluetoothGattService currentTimeService = new BluetoothGattService(CURRENT_TIME_SERVICE_UUID,
             BluetoothGattService.SERVICE_TYPE_PRIMARY);
     currentTimeService.addCharacteristic(mCurrentTimeChar);
@@ -250,6 +288,14 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
   public int writeCharacteristic(BluetoothGattCharacteristic characteristic, int offset, byte[] value) {
     if (offset != 0) {
       return BluetoothGatt.GATT_INVALID_OFFSET;
+    }
+    if (characteristic.getUuid() == CURRENT_TIME_CHAR_UUID) {
+      // 校时设置，设置时间
+      if (value.length != 10) {
+        return BluetoothGatt.GATT_INVALID_ATTRIBUTE_LENGTH; // 长度不足
+      }
+      System.arraycopy(value, 0, mCurrentTimeCharValue, 0, value.length);
+      mCurrentTimeChar.setValue(mCurrentTimeCharValue); // 写入char的当前时间
     }
     return BluetoothGatt.GATT_SUCCESS;
   }
