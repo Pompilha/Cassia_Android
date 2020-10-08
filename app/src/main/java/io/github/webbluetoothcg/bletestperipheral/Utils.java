@@ -25,4 +25,8 @@ public class Utils {
         return (short) ((bytes[0] & 0xff) << 8 | (bytes[1] & 0xff));
     }
 
+    // byte[2]转short，小端
+    public static short bytes2shortLE(byte[] bytes) {
+        return (short) ((bytes[1] & 0xff) << 8 | (bytes[0] & 0xff));
+    }
 }

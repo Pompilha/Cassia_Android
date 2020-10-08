@@ -84,4 +84,69 @@
             />
     </GridLayout>
 
+    <TextView
+        android:id="@+id/textView_currentTimeServiceName"
+        android:text="Current Time Service"
+        android:layout_below="@id/gridLayout_healthThermometerCharacteristicsValues"
+        android:textAppearance="@style/subheader"
+        android:gravity="center_vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"/>
+    <GridLayout
+        android:id="@+id/gridLayout_currentTimeCharacteristicsValues"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:rowCount="1"
+        android:columnCount="10"
+        android:layout_below="@id/textView_currentTimeServiceName">
+        <TextView
+            android:id="@+id/label_currentTimeValue"
+            android:text="Date Time"
+            android:textAppearance="@style/label"
+            android:layout_gravity="fill"
+            android:layout_columnSpan="2"
+            android:gravity="center"
+            />
+        <EditText
+            android:id="@+id/editText_currentTimeValue"
+            android:layout_gravity="fill"
+            android:layout_columnSpan="8"
+            android:textAppearance="@style/label"
+            android:gravity="center"
+            android:enabled="false"
+            />
+    </GridLayout>
+
+    <TextView
+        android:id="@+id/textView_AlertNotifyServiceName"
+        android:text="Alert Notification Service"
+        android:layout_below="@id/gridLayout_currentTimeCharacteristicsValues"
+        android:textAppearance="@style/subheader"
+        android:gravity="center_vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"/>
+    <GridLayout
+        android:id="@+id/gridLayout_newAlertCharacteristicsValues"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:rowCount="1"
+        android:columnCount="10"
+        android:layout_below="@id/textView_AlertNotifyServiceName">
+        <TextView
+            android:id="@+id/label_newAlertValue"
+            android:text="Message"
+            android:textAppearance="@style/label"
+            android:layout_gravity="fill"
+            android:layout_columnSpan="2"
+            android:gravity="center"
+            />
+        <EditText
+            android:id="@+id/editText_newAlertValue"
+            android:layout_gravity="fill"
+            android:layout_columnSpan="8"
+            android:textAppearance="@style/label"
+            android:gravity="center"
+            android:enabled="false"
+            />
+    </GridLayout>
 </RelativeLayout>
