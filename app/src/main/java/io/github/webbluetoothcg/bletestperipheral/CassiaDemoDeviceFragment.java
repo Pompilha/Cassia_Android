@@ -310,9 +310,9 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
     // 心率定时器处理: 生成随机数 -> gatt更新 -> 更新控件 -> 发送通知
     private void heartRateTimerHandler() {
         mHeartRateMeasurementValue = Utils.getRandomRange(50, 140);
+        gattSetHeartRateMeasurementValue(mHeartRateMeasurementValue);
+        getActivity().runOnUiThread(mEditTextHeartRateMeasurementUpdater);
         if (mHeartRateMeasurementNotifyOn) { // 只有开启notify时才上报数据
-            gattSetHeartRateMeasurementValue(mHeartRateMeasurementValue);
-            getActivity().runOnUiThread(mEditTextHeartRateMeasurementUpdater);
             mDelegate.sendNotificationToDevices(mHeartRateMeasurementCharacteristic); // notify上报数据
         }
     }
@@ -320,9 +320,9 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
     // 体温定时器处理：生成随机数 -> gatt更新 -> 更新控件 -> 发送通知
     private void temperatureTimerHandler() {
         mTemperatureMeasurementValue = Utils.getRandomRange(3500, 4000);
+        gattSetTemperatureMeasurementValue(mTemperatureMeasurementValue);
+        getActivity().runOnUiThread(mEditTextTemperatureMeasurementUpdater);
         if (mTemperatureMeasurementNotifyOn) {
-            gattSetTemperatureMeasurementValue(mTemperatureMeasurementValue);
-            getActivity().runOnUiThread(mEditTextTemperatureMeasurementUpdater);
             mDelegate.sendNotificationToDevices(mTemperatureMeasurementCharacteristic); // notify上报数据
         }
     }
