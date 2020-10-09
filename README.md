@@ -20,8 +20,8 @@ APP broadcast instructions:
 A developer can use the app to simulate a BLE Peripheral with one of these services:
 
 * Current Time Service
-    * Service Reference: ![Current Time](https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Services/org.bluetooth.service.current_time.xml)
-    * Characteristic Reference: ![CurrentTime](https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Characteristics/org.bluetooth.characteristic.current_time.xml)
+    * Service Reference: [Current Time](https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Services/org.bluetooth.service.current_time.xml)
+    * Characteristic Reference: [CurrentTime](https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Characteristics/org.bluetooth.characteristic.current_time.xml)
     * Set current date time
         * Connect App
         * Write Command to UUID 00002a2b-0000-1000-8000-00805f9b34fb
@@ -43,8 +43,8 @@ A developer can use the app to simulate a BLE Peripheral with one of these servi
         * Read from UUID 00002a2b-0000-1000-8000-00805f9b34fb
         * Fields: As mentioned above       
 * Heart Rate Service
-    * Service Reference: ![Heart Rate](https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Services/org.bluetooth.service.heart_rate.xml)
-    * Characteristic Reference: ![Heart Rate Measurement](https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Characteristics/org.bluetooth.characteristic.heart_rate_measurement.xml)
+    * Service Reference: [Heart Rate](https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Services/org.bluetooth.service.heart_rate.xml)
+    * Characteristic Reference: [Heart Rate Measurement](https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Characteristics/org.bluetooth.characteristic.heart_rate_measurement.xml)
     * Support notify report data:
         * Connect App
         * Open Notify: UUID 00002902-0000-1000-8000-00805f9b34fb
@@ -54,8 +54,8 @@ A developer can use the app to simulate a BLE Peripheral with one of these servi
         * Example: 
             * 08580000: 0x58, Occupies 1 byte, Heart Rate 88
 * Health Thermometer
-    * Service Reference: ![Health Thermometer](https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Services/org.bluetooth.service.health_thermometer.xml)
-    * Characteristic Reference: ![Temperature Measurement](https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Characteristics/org.bluetooth.characteristic.temperature_measurement.xml)
+    * Service Reference: [Health Thermometer](https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Services/org.bluetooth.service.health_thermometer.xml)
+    * Characteristic Reference: [Temperature Measurement](https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Characteristics/org.bluetooth.characteristic.temperature_measurement.xml)
     * Support indicate data:
         * Connect App
         * Open Indicate: UUID 00002902-0000-1000-8000-00805f9b34fb
@@ -65,8 +65,8 @@ A developer can use the app to simulate a BLE Peripheral with one of these servi
         * Example:
             * 00420E00FE: 0x0E42, Occupies 2 byte, Little endian, Temperature 36.50℃
 * Alert Notification Service
-    * Service Reference: ![Alert Notification](https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Services/org.bluetooth.service.alert_notification.xml)
-    * Characteristic Reference: ![New Alert](https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Characteristics/org.bluetooth.characteristic.new_alert.xml)
+    * Service Reference: [Alert Notification](https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Services/org.bluetooth.service.alert_notification.xml)
+    * Characteristic Reference: [New Alert](https://www.bluetooth.com/wp-content/uploads/Sitecore-Media-Library/Gatt/Xml/Characteristics/org.bluetooth.characteristic.new_alert.xml)
     * Send BLE Message:
         * Connect App
         * Write command to UUID 00002a46-0000-1000-8000-00805f9b34fb
