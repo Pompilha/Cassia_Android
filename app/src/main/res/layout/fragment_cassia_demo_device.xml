@@ -10,50 +10,40 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
         android:orientation="horizontal" >
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:background="@drawable/corn"
-            android:paddingTop="20dp"
-            android:paddingBottom="20dp"
-            android:paddingLeft="8dp"
-            android:paddingRight="8dp"
-            android:layout_marginRight="5dp"
+            android:gravity="center"
+            android:background="@drawable/box"
             android:layout_weight="1"
+            android:paddingBottom="24dp"
+            android:paddingTop="29dp"
+            android:layout_marginRight="7dp"
             >
             <TextView
                 android:id="@+id/TextView1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="20dp"
+                android:textSize="20sp"
                 android:textColor="#000000"
                 android:gravity="center"
                 android:text="Heart Rate" />
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_width="162dp"
+                android:layout_height="162dp"
+                android:gravity="center"
                 android:orientation="vertical"
-                android:background="@drawable/corn2"
-                android:paddingTop="30dp"
-                android:paddingBottom="20dp"
-                android:paddingLeft="8dp"
-                android:paddingRight="8dp"
-                android:layout_margin="10dp"
-                android:layout_marginRight="5dp"
-                android:layout_weight="1"
+                android:layout_marginTop="28dp"
+                android:background="@drawable/circle"
                 >
                 <TextView
                     android:id="@+id/viewHeartRateMeasurementValue"
                     android:gravity="center"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textSize="30dp"
+                    android:textSize="30sp"
                     android:textColor="#272727"
                     android:text="60" />
 
@@ -70,87 +60,128 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
+            android:gravity="center"
+            android:background="@drawable/box"
             android:layout_weight="1"
-            android:background="@drawable/corn"
-            android:paddingTop="20dp"
-            android:paddingLeft="8dp"
-            android:paddingRight="8dp"
-            android:layout_marginLeft="5dp"
+            android:paddingBottom="24dp"
+            android:paddingTop="29dp"
+            android:layout_marginLeft="7dp"
             >
             <TextView
                 android:id="@+id/textView6"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="20dp"
+                android:textSize="20sp"
                 android:textColor="#000000"
                 android:gravity="center"
                 android:text="Temperature" />
             <com.biansemao.widget.ThermometerView
                 android:id="@+id/tv_thermometer"
+                android:layout_gravity="center"
+                android:layout_marginTop="28dp"
                 app:viewBg="#ffffff"
-                app:maxLineWidth="1dp"
+                app:maxLineWidth="7dp"
+                app:midLineWidth="5dp"
+                app:minLineWidth="5dp"
+                app:spaceScaleWidth="5dp"
                 app:maxMercuryRadius="10.01dp"
                 app:minMercuryRadius="10.0dp"
                 app:maxThermometerRadius="10.02dp"
                 app:minThermometerRadius="10.01dp"
-                android:layout_width="match_parent"
-                android:layout_height="150dp"
-                android:layout_margin="20dp"
+                app:leftMercuryColor="#ff8969"
+                app:rightMercuryColor="#ff8969"
+                app:maxScaleLineColor="#9e9e9e"
+                app:midScaleLineColor="#9e9e9e"
+                app:minScaleLineColor="#f6f6f6"
+                app:unitTextColor="#9e9e9e"
+                app:scaleTextColor="#9e9e9e"
+                android:layout_width="162dp"
+                android:layout_height="162dp"
                  /> <!-- TODO: layout_height使用动态计算高度 -->
         </LinearLayout>
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="60dp"
         android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingLeft="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:background="@drawable/corn1"
+        android:gravity="center"
+        android:paddingLeft="20dp"
+        android:layout_marginTop="13dp"
+        android:background="@drawable/box"
         >
+        <ImageView
+            android:id="@+id/imageView2"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_time" />
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#272727"
+            android:textSize="14sp"
+            android:layout_marginLeft="6dp"
+            android:text="Current Time Service: " />
         <TextView
             android:id="@+id/viewCurrentTimeValue"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#a7a7a7"
-            android:text="Current Time Service: " />
+            android:textColor="#698fff"
+            android:layout_marginLeft="5dp"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:text="2021/01/22 14:13:44" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:gravity="center_vertical"
-        android:paddingLeft="10dp"
+        android:layout_height="60dp"
         android:orientation="horizontal"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/corn1"
+        android:gravity="center"
+        android:paddingLeft="20dp"
+        android:layout_marginTop="13dp"
+        android:background="@drawable/box"
         >
+        <ImageView
+            android:id="@+id/imageView3"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_message" />
+        <TextView
+            android:id="@+id/textView4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#272727"
+            android:textSize="14sp"
+            android:layout_marginLeft="6dp"
+            android:text="Message: " />
         <TextView
             android:id="@+id/viewNewAlertValue"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#a7a7a7"
-            android:text="Message: " />
+            android:textColor="#00CEBA"
+            android:layout_marginLeft="5dp"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:text="Hello, World!" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="13dp"
         android:orientation="vertical"
-        android:paddingTop="10dp"
-        android:background="#f7f7f7"
+        android:padding="13dp"
+        android:background="@drawable/box"
         >
         <TextView
             android:id="@+id/TextView3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#000000"
+            android:textColor="#272727"
             android:gravity="center"
+            android:textSize="14sp"
             android:text="Heart Rate Stats" />
         <com.github.mikephil.charting.charts.LineChart
             android:id="@+id/viewHeartRateChart"

@@ -231,28 +231,32 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
         LineDataSet dataSet = new LineDataSet(viewHeartRateChartEntries, "");
         dataSet.setDrawValues(false);
         dataSet.setDrawCircles(false);
+        dataSet.setColor(Color.parseColor("#ffff696a"));
+        dataSet.setLineWidth(2);
         LineData lineData = new LineData(dataSet);
         viewHeartRateChart.setData(lineData);
 
         viewHeartRateChart.getLegend().setEnabled(false);
         viewHeartRateChart.getDescription().setEnabled(false);
         XAxis xAxis = viewHeartRateChart.getXAxis();
+        xAxis.setTextColor(Color.parseColor("#ffbebebe"));
+        xAxis.setAxisLineColor(Color.parseColor("#ffbebebe"));
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setDrawAxisLine(true);
         xAxis.setDrawGridLines(false);
-        xAxis.setAxisLineWidth(1.5f);
+        xAxis.setAxisLineWidth(1f);
         YAxis leftYAxis = viewHeartRateChart.getAxisLeft();
         YAxis rightYAxis = viewHeartRateChart.getAxisRight();
-        leftYAxis.setDrawAxisLine(true);
+        leftYAxis.setDrawAxisLine(false);
         rightYAxis.setEnabled(false);
-        leftYAxis.setAxisMinimum(0);
-        leftYAxis.setAxisMaximum(210);
+        leftYAxis.setAxisMinimum(50);
+        leftYAxis.setAxisMaximum(200);
         leftYAxis.setDrawTopYLabelEntry(true);
         leftYAxis.setGranularity(50);
-        leftYAxis.setAxisLineColor(Color.parseColor("#ff979797"));
+        leftYAxis.setAxisLineColor(Color.parseColor("#ffbebebe"));
+        leftYAxis.setTextColor(Color.parseColor("#ffbebebe"));
         leftYAxis.setGridDashedLine(new DashPathEffect(new float[]{10,5,10,5},0));
-        leftYAxis.setZeroLineColor(Color.parseColor("#ff979797"));
-        leftYAxis.setAxisLineWidth(1.5f);
+        leftYAxis.setZeroLineColor(Color.parseColor("#ffbebebe"));
     }
 
     public void updateHeartRateChart(long timestamp, int heartrate) {
@@ -263,6 +267,8 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
         LineDataSet dataSet = new LineDataSet(viewHeartRateChartEntries, "");
         dataSet.setDrawValues(false);
         dataSet.setDrawCircles(false);
+        dataSet.setColor(Color.parseColor("#ffff696a"));
+        dataSet.setLineWidth(2);
         LineData lineData = new LineData(dataSet);
         viewHeartRateChart.setData(lineData);
         viewHeartRateChart.notifyDataSetChanged();
@@ -383,7 +389,7 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
 
     // 体温定时器处理：生成随机数 -> gatt更新 -> 更新控件 -> 发送通知
     private void temperatureTimerHandler() {
-        mTemperatureMeasurementValue = Utils.getRandomRange(3500, 4000);
+        mTemperatureMeasurementValue = Utils.getRandomRange(3600, 4000);
         gattSetTemperatureMeasurementValue(mTemperatureMeasurementValue);
         getActivity().runOnUiThread(mEditTextTemperatureMeasurementUpdater);
         if (mTemperatureMeasurementNotifyOn) {

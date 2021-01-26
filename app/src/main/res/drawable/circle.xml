@@ -20,8 +20,8 @@
             android:shape="oval" >
             <solid android:color="#ffeaea" />
             <size
-                android:width="60dp"
-                android:height="60dp" />
+                android:width="117dp"
+                android:height="117dp" />
         </shape>
     </item>
 </layer-list >
