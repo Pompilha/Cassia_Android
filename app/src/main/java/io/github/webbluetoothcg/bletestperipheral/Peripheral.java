@@ -63,8 +63,6 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
   private static final UUID CLIENT_CHARACTERISTIC_CONFIGURATION_UUID = UUID
       .fromString("00002902-0000-1000-8000-00805f9b34fb");
 
-  private TextView mAdvStatus;
-  private TextView mConnectionStatus;
   private ServiceFragment mCurrentServiceFragment;
   private HashSet<BluetoothDevice> mBluetoothDevices;
   private BluetoothManager mBluetoothManager;
@@ -112,44 +110,6 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
     }
   };
 
-  private final AdvertiseCallback mAdvCallback = new AdvertiseCallback() {
-    @Override
-    public void onStartFailure(int errorCode) {
-      super.onStartFailure(errorCode);
-      Log.e(TAG, "Not broadcasting: " + errorCode);
-      int statusText;
-      switch (errorCode) {
-        case ADVERTISE_FAILED_ALREADY_STARTED:
-          statusText = R.string.status_advertising;
-          Log.w(TAG, "App was already advertising");
-          break;
-        case ADVERTISE_FAILED_DATA_TOO_LARGE:
-          statusText = R.string.status_advDataTooLarge;
-          break;
-        case ADVERTISE_FAILED_FEATURE_UNSUPPORTED:
-          statusText = R.string.status_advFeatureUnsupported;
-          break;
-        case ADVERTISE_FAILED_INTERNAL_ERROR:
-          statusText = R.string.status_advInternalError;
-          break;
-        case ADVERTISE_FAILED_TOO_MANY_ADVERTISERS:
-          statusText = R.string.status_advTooManyAdvertisers;
-          break;
-        default:
-          statusText = R.string.status_notAdvertising;
-          Log.wtf(TAG, "Unhandled error: " + errorCode);
-      }
-      mAdvStatus.setText(statusText);
-    }
-
-    @Override
-    public void onStartSuccess(AdvertiseSettings settingsInEffect) {
-      super.onStartSuccess(settingsInEffect);
-      Log.v(TAG, "Broadcasting");
-      mAdvStatus.setText(R.string.status_advertising);
-    }
-  };
-
   private BluetoothGattServer mGattServer;
   private final BluetoothGattServerCallback mGattServerCallback = new BluetoothGattServerCallback() {
     @Override
@@ -181,29 +141,10 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
           mBluetoothDevices.add(device);
           updateConnectedDevicesStatus();
           Log.v(TAG, "Connected to device: " + device.getAddress());
-
-          /* demo需要同时配置数据采集和基于建连的方式，所以还是需要进行广播的
-          // 连接后停止广播
-          if (mAdvertiser != null) {
-            cancelTimer();
-            mAdvertiser.stopAdvertisingSet(mAdvSetCallback);
-            mAdvStatus.setText(R.string.status_notAdvertising);
-          }
-          */
         } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
           mBluetoothDevices.remove(device);
           updateConnectedDevicesStatus();
           Log.v(TAG, "Disconnected from device");
-
-          /* demo需要同时配置数据采集和基于建连的方式，所以还是需要进行广播的
-          // 断连后开启广播
-          if (mAdvertiser != null) {
-            resetTimer();
-            mAdvertiser.startAdvertisingSet(mAdvSetParameters, mAdvData, mAdvScanResponse, null, null,
-                    0, 0, mAdvSetCallback);
-            mAdvStatus.setText(R.string.status_advertising);
-          }
-          */
         }
       } else {
         mBluetoothDevices.remove(device);
@@ -321,44 +262,26 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
     }
   };
 
-  /////////////////////////////////
-  ////// Lifecycle Callbacks //////
-  /////////////////////////////////
-
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_peripherals);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-    mAdvStatus = (TextView) findViewById(R.id.textView_advertisingStatus);
-    mConnectionStatus = (TextView) findViewById(R.id.textView_connectionStatus);
     mBluetoothDevices = new HashSet<>();
     mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
     mBluetoothAdapter = mBluetoothManager.getAdapter();
-
-    // If we are not being restored from a previous state then create and add the fragment.
-    if (savedInstanceState == null) {
-      int peripheralIndex = getIntent().getIntExtra(Peripherals.EXTRA_PERIPHERAL_INDEX,
-          /* default */ -1);
-      if (peripheralIndex == 0) {
-        mCurrentServiceFragment = new CassiaDemoDeviceFragment();
-      } else {
-        Log.wtf(TAG, "Service doesn't exist");
-      }
-      getFragmentManager()
-          .beginTransaction()
-          .add(R.id.fragment_container, mCurrentServiceFragment, CURRENT_FRAGMENT_TAG)
-          .commit();
-    } else {
-      mCurrentServiceFragment = (ServiceFragment) getFragmentManager()
-          .findFragmentByTag(CURRENT_FRAGMENT_TAG);
-    }
+    mCurrentServiceFragment = new CassiaDemoDeviceFragment();
+    getFragmentManager()
+            .beginTransaction()
+            .add(R.id.fragment_container, mCurrentServiceFragment, CURRENT_FRAGMENT_TAG)
+            .commit();
 
     mServices = mCurrentServiceFragment.getBluetoothGattServices(); // 获取所有的导出services
     mIsServiceAdded = new boolean[mServices.length];
     for (int index = 0; index < mServices.length; index++) {
       mIsServiceAdded[index] = false;
     }
+
     mAdvSettings = new AdvertiseSettings.Builder()
         .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
         .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
@@ -428,9 +351,6 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       mAdvertiser.startAdvertisingSet(mAdvSetParameters, mAdvData, mAdvScanResponse, null, null,
               0, 0, mAdvSetCallback);
       startAdDataUpdateTimer();
-      mAdvStatus.setText(R.string.status_advertising);
-    } else {
-      mAdvStatus.setText(R.string.status_noLeAdv);
     }
   }
 
@@ -488,11 +408,8 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       mGattServer.close();
     }
     if (mBluetoothAdapter.isEnabled() && mAdvertiser != null) {
-      // If stopAdvertising() gets called before close() a null
-      // pointer exception is raised.
       cancelTimer();
       mAdvertiser.stopAdvertisingSet(mAdvSetCallback);
-      mAdvStatus.setText(R.string.status_notAdvertising);
     }
     resetStatusViews();
   }
@@ -509,7 +426,6 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
   }
 
   private void resetStatusViews() {
-    mAdvStatus.setText(R.string.status_notAdvertising);
     updateConnectedDevicesStatus();
   }
 
@@ -519,14 +435,10 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        mConnectionStatus.setText(message);
       }
     });
   }
 
-  ///////////////////////
-  ////// Bluetooth //////
-  ///////////////////////
   public static BluetoothGattDescriptor getClientCharacteristicConfigurationDescriptor() {
     BluetoothGattDescriptor descriptor = new BluetoothGattDescriptor(
         CLIENT_CHARACTERISTIC_CONFIGURATION_UUID,
