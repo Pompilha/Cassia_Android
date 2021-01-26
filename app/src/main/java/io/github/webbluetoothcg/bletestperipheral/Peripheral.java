@@ -371,7 +371,6 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       @Override
       public void run() {
         if (mCurrentAdvertisingSet != null) {
-//          Log.i(TAG, "adv service data:" + mCurrentServiceFragment.getServiceData()[0]);
           AdvertiseData.Builder builder = new AdvertiseData.Builder();
           mCurrentServiceFragment.addServiceData2AdvBuilder(builder);
           AdvertiseData advData = builder.build();

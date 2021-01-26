@@ -25,5 +25,7 @@ android {
 }
 
 dependencies {
+    implementation 'com.github.biansemao:ThermometerView:1.0.1'
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
     compile fileTree(include: ['*.jar'], dir: 'libs')
 }

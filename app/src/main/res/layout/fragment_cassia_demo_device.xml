@@ -1,152 +1,160 @@
-<!--
-  Copyright 2015 Google Inc. All rights reserved.
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    tools:context="io.github.webbluetoothcg.bletestperipheral.CassiaDemoDeviceFragment">
 
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:orientation="horizontal" >
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:background="@drawable/corn"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:layout_marginRight="5dp"
+            android:layout_weight="1"
+            >
+            <TextView
+                android:id="@+id/TextView1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="20dp"
+                android:textColor="#000000"
+                android:gravity="center"
+                android:text="Heart Rate" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:background="@drawable/corn2"
+                android:paddingTop="30dp"
+                android:paddingBottom="20dp"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:layout_margin="10dp"
+                android:layout_marginRight="5dp"
+                android:layout_weight="1"
+                >
+                <TextView
+                    android:id="@+id/viewHeartRateMeasurementValue"
+                    android:gravity="center"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="30dp"
+                    android:textColor="#272727"
+                    android:text="60" />
 
-       http://www.apache.org/licenses/LICENSE-2.0
+                <ImageView
+                    android:id="@+id/imageView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minWidth="40dp"
+                    android:minHeight="40dp"
+                    android:src="@drawable/heart" />
+            </LinearLayout>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_weight="1"
+            android:background="@drawable/corn"
+            android:paddingTop="20dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:layout_marginLeft="5dp"
+            >
+            <TextView
+                android:id="@+id/textView6"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="20dp"
+                android:textColor="#000000"
+                android:gravity="center"
+                android:text="Temperature" />
+            <com.biansemao.widget.ThermometerView
+                android:id="@+id/tv_thermometer"
+                app:viewBg="#ffffff"
+                app:maxLineWidth="1dp"
+                app:maxMercuryRadius="10.01dp"
+                app:minMercuryRadius="10.0dp"
+                app:maxThermometerRadius="10.02dp"
+                app:minThermometerRadius="10.01dp"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:layout_margin="20dp"
+                 /> <!-- TODO: layout_height使用动态计算高度 -->
+        </LinearLayout>
+    </LinearLayout>
 
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
--->
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent"
-             tools:context="io.github.webbluetoothcg.bletestperipheral.CassiaDemoDeviceFragment">
-
-    <TextView
-            android:id="@+id/textView_heartRateServiceName"
-            android:text="@string/heartRateServiceName"
-            android:textAppearance="@style/subheader"
-            android:gravity="center_vertical"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"/>
-    <GridLayout
-            android:id="@+id/gridLayout_heartRateCharacteristicsValues"
-            android:layout_width="fill_parent"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingLeft="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/corn1"
+        >
+        <TextView
+            android:id="@+id/viewCurrentTimeValue"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:rowCount="1"
-            android:columnCount="10"
-            android:layout_below="@id/textView_heartRateServiceName">
-        <TextView
-            android:id="@+id/label_heartRateMeasurementValue"
-            android:text="Heart Rate(bpm)"
-            android:textAppearance="@style/label"
-            android:layout_gravity="fill"
-            android:layout_columnSpan="2"
-            android:gravity="center"
-            />
-        <EditText
-            android:id="@+id/editText_heartRateMeasurementValue"
-            android:layout_gravity="fill"
-            android:layout_columnSpan="8"
-            android:textAppearance="@style/label"
-            android:gravity="center"
-            android:enabled="false"
-            />
-    </GridLayout>
+            android:textColor="#a7a7a7"
+            android:text="Current Time Service: " />
+    </LinearLayout>
 
-    <TextView
-        android:id="@+id/textView_healthThermometerServiceName"
-        android:text="Health Thermometer Service"
-        android:layout_below="@id/gridLayout_heartRateCharacteristicsValues"
-        android:textAppearance="@style/subheader"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
         android:gravity="center_vertical"
-        android:layout_width="wrap_content"
-        android:layout_height="48dp"/>
-    <GridLayout
-        android:id="@+id/gridLayout_healthThermometerCharacteristicsValues"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:rowCount="1"
-        android:columnCount="10"
-        android:layout_below="@id/textView_healthThermometerServiceName">
+        android:paddingLeft="10dp"
+        android:orientation="horizontal"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/corn1"
+        >
         <TextView
-            android:id="@+id/label_temperatureMeasurementValue"
-            android:text="Temperature(℃)"
-            android:textAppearance="@style/label"
-            android:layout_gravity="fill"
-            android:layout_columnSpan="2"
-            android:gravity="center"
-            />
-        <EditText
-            android:id="@+id/editText_temperatureMeasurementValue"
-            android:layout_gravity="fill"
-            android:layout_columnSpan="8"
-            android:textAppearance="@style/label"
-            android:gravity="center"
-            android:enabled="false"
-            />
-    </GridLayout>
+            android:id="@+id/viewNewAlertValue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#a7a7a7"
+            android:text="Message: " />
+    </LinearLayout>
 
-    <TextView
-        android:id="@+id/textView_currentTimeServiceName"
-        android:text="Current Time Service"
-        android:layout_below="@id/gridLayout_healthThermometerCharacteristicsValues"
-        android:textAppearance="@style/subheader"
-        android:gravity="center_vertical"
-        android:layout_width="wrap_content"
-        android:layout_height="48dp"/>
-    <GridLayout
-        android:id="@+id/gridLayout_currentTimeCharacteristicsValues"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:rowCount="1"
-        android:columnCount="10"
-        android:layout_below="@id/textView_currentTimeServiceName">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="10dp"
+        android:orientation="vertical"
+        android:paddingTop="10dp"
+        android:background="#f7f7f7"
+        >
         <TextView
-            android:id="@+id/label_currentTimeValue"
-            android:text="Date Time"
-            android:textAppearance="@style/label"
-            android:layout_gravity="fill"
-            android:layout_columnSpan="2"
+            android:id="@+id/TextView3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#000000"
             android:gravity="center"
-            />
-        <EditText
-            android:id="@+id/editText_currentTimeValue"
-            android:layout_gravity="fill"
-            android:layout_columnSpan="8"
-            android:textAppearance="@style/label"
-            android:gravity="center"
-            android:enabled="false"
-            />
-    </GridLayout>
-
-    <TextView
-        android:id="@+id/textView_AlertNotifyServiceName"
-        android:text="Alert Notification Service"
-        android:layout_below="@id/gridLayout_currentTimeCharacteristicsValues"
-        android:textAppearance="@style/subheader"
-        android:gravity="center_vertical"
-        android:layout_width="wrap_content"
-        android:layout_height="48dp"/>
-    <GridLayout
-        android:id="@+id/gridLayout_newAlertCharacteristicsValues"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:rowCount="1"
-        android:columnCount="10"
-        android:layout_below="@id/textView_AlertNotifyServiceName">
-        <TextView
-            android:id="@+id/label_newAlertValue"
-            android:text="Message"
-            android:textAppearance="@style/label"
-            android:layout_gravity="fill"
-            android:layout_columnSpan="2"
-            android:gravity="center"
-            />
-        <EditText
-            android:id="@+id/editText_newAlertValue"
-            android:layout_gravity="fill"
-            android:layout_columnSpan="8"
-            android:textAppearance="@style/label"
-            android:gravity="center"
-            android:enabled="false"
-            />
-    </GridLayout>
-</RelativeLayout>
+            android:text="Heart Rate Stats" />
+        <com.github.mikephil.charting.charts.LineChart
+            android:id="@+id/viewHeartRateChart"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </LinearLayout>
+</LinearLayout>
