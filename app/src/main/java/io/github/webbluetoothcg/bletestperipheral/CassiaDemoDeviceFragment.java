@@ -138,6 +138,8 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
     private BluetoothGattCharacteristic mHeartRateMeasurementCharacteristic;
     private boolean mHeartRateMeasurementNotifyOn = false; // 测量notify开关
     private int mHeartRateMeasurementValue = 60; // 实时心率
+    private int[] heartRateArray;
+    private int heartRateArrayIndex = 0;
 
     // HealthThermometer UI
     private ThermometerView viewTemperatureMeasurement;
@@ -249,7 +251,7 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
         YAxis rightYAxis = viewHeartRateChart.getAxisRight();
         leftYAxis.setDrawAxisLine(false);
         rightYAxis.setEnabled(false);
-        leftYAxis.setAxisMinimum(50);
+        leftYAxis.setAxisMinimum(0);
         leftYAxis.setAxisMaximum(200);
         leftYAxis.setDrawTopYLabelEntry(true);
         leftYAxis.setGranularity(50);
@@ -279,6 +281,7 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
+        heartRateArray = new int[]{82,92,91,87,87,85,85,86,87,87,84,82,83,81,84,85,84,82,83,83,81,79,80,83,85,86,85,76,78,82,85,85,83,83,84,85,85,86,86,85,83,83,84,88,85,82,83,83,84,75,79,82,86,87,84,85,84,86,86,86,85,85,86,86,83,84,85,77,81,81,83,84,86,85,83,86,89,89,87,88,87,86,85,84,82,82,82,81,78,80,83,81,81,85,87,85,84,84,83,83,84,84,85,86,85,86,87,87,85,86,84,87,85,86,88,87,86,84,85,88};
         // 获取各个控件并注册事件
         View view = inflater.inflate(R.layout.fragment_cassia_demo_device, container, false);
         viewHeartRateMeasurement = (TextView) view.findViewById(R.id.viewHeartRateMeasurementValue);
@@ -377,7 +380,11 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
 
     // 心率定时器处理: 生成随机数 -> gatt更新 -> 更新控件 -> 发送通知
     private void heartRateTimerHandler() {
-        mHeartRateMeasurementValue = Utils.getRandomRange(50, 140);
+//        mHeartRateMeasurementValue = Utils.getRandomRange(50, 140);
+        if (heartRateArrayIndex >= heartRateArray.length) {
+            heartRateArrayIndex = 0;
+        }
+        mHeartRateMeasurementValue = heartRateArray[heartRateArrayIndex++];
         long timestamp = System.currentTimeMillis();
         updateHeartRateChart(timestamp, mHeartRateMeasurementValue);
         gattSetHeartRateMeasurementValue(mHeartRateMeasurementValue);
@@ -389,7 +396,7 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
 
     // 体温定时器处理：生成随机数 -> gatt更新 -> 更新控件 -> 发送通知
     private void temperatureTimerHandler() {
-        mTemperatureMeasurementValue = Utils.getRandomRange(3600, 4000);
+        mTemperatureMeasurementValue = Utils.getRandomRange(3660, 3720);
         gattSetTemperatureMeasurementValue(mTemperatureMeasurementValue);
         getActivity().runOnUiThread(mEditTextTemperatureMeasurementUpdater);
         if (mTemperatureMeasurementNotifyOn) {
