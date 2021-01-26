@@ -31,8 +31,8 @@
                 android:gravity="center"
                 android:text="Heart Rate" />
             <LinearLayout
-                android:layout_width="162dp"
-                android:layout_height="162dp"
+                android:layout_width="145dp"
+                android:layout_height="145dp"
                 android:gravity="center"
                 android:orientation="vertical"
                 android:layout_marginTop="28dp"
@@ -46,7 +46,6 @@
                     android:textSize="30sp"
                     android:textColor="#272727"
                     android:text="60" />
-
                 <ImageView
                     android:id="@+id/imageView"
                     android:layout_width="match_parent"
@@ -95,8 +94,8 @@
                 app:minScaleLineColor="#f6f6f6"
                 app:unitTextColor="#9e9e9e"
                 app:scaleTextColor="#9e9e9e"
-                android:layout_width="162dp"
-                android:layout_height="162dp"
+                android:layout_width="145dp"
+                android:layout_height="145dp"
                  /> <!-- TODO: layout_height使用动态计算高度 -->
         </LinearLayout>
     </LinearLayout>

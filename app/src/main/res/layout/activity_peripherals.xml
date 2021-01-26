@@ -18,11 +18,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical"
-                android:background="#f8f7fa"
-                android:paddingTop="15dp"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:paddingBottom="30dp"
+                android:background="#fff8f7fb"
+                android:paddingTop="20dp"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:paddingBottom="20dp"
                 tools:context=".Peripheral">
     <FrameLayout
         android:id="@+id/fragment_container"
