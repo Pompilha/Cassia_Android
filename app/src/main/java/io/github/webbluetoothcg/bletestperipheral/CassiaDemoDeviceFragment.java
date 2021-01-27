@@ -47,7 +47,6 @@ import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.renderer.YAxisRenderer;
 
 public class CassiaDemoDeviceFragment extends ServiceFragment {
     private static final String TAG = CassiaDemoDeviceFragment.class.getCanonicalName();
