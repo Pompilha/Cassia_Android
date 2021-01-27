@@ -7,11 +7,11 @@ APP broadcast instructions:
 
 * Device broadcast identification: Name is Cassia Demo App.
 * Parameters: LegacyMode, Connectable, Scannable, Interval(160ms), TxPowerLevel(1)
-* The broadcast packet is updated every 0.5 second 
+* The broadcast packet is updated every 0.5 second
 * The broadcast packet contains body temperature and heart rate data
 * Temperature data is a random number between 35.00 and 40.00
-* Heart rate data is a random number between 50 and 140 
-* Example broadcast package: 0201020416372A5D07161C2A00000F1D
+* Heart rate data is a random number between 50 and 140
+* Example broadcast package: 0201020416372A5D07161C2A00000E07
     * 5D: heart rate, 93
     * 0E07: temperature, 0x0E07 / 100 = 35.91℃
 * Example of Scan response package: 12094361737369612044656d6f20417070
@@ -78,12 +78,12 @@ A developer can use the app to simulate a BLE Peripheral with one of these servi
                 * 01: Occupies 1 byte, Number Of New Alert, app not yet supported
                 * 48656c6c6f2c20576f726c6421: Occupies N bytes, utfs, "Hello, World!"
         * Support notify report data:
-                * Connect App
-                * Open Notify: UUID 00002902-0000-1000-8000-00805f9b34fb
-                    * Open: Write 0100
-                    * Close: Write 0000
-                * The notify data is updated when app received BLE message
-                * Fields and Example: As mentioned above
+              * Connect App
+              * Open Notify: UUID 00002902-0000-1000-8000-00805f9b34fb
+                  * Open: Write 0100
+                  * Close: Write 0000
+              * The notify data is updated when app received BLE message
+              * Fields and Example: As mentioned above
 
 The developer can use the Cassia Router features to connect to the app to Read and Write Characteristics, Subscribe to Notifications for when the Characteristics change, and Read and Write Descriptors.
 
