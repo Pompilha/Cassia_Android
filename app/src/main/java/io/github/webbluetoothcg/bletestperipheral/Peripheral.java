@@ -44,11 +44,16 @@ import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 import io.github.webbluetoothcg.bletestperipheral.ServiceFragment.ServiceFragmentDelegate;
 
@@ -76,6 +81,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
   private AdvertisingSet mCurrentAdvertisingSet;
   private BluetoothGattService[] mServices;
   private boolean[] mIsServiceAdded;
+  private byte[] manufacturerData; // 11B
 
   private final AdvertisingSetCallback mAdvSetCallback = new AdvertisingSetCallback() {
     @Override
@@ -295,11 +301,63 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       .setTxPowerLevel(1).build();
     AdvertiseData.Builder builder = new AdvertiseData.Builder();
     mCurrentServiceFragment.addServiceData2AdvBuilder(builder);
+
+    // 增加固定uid, 前6个字节
+    manufacturerData = new byte[11];
+    byte[] uidBytes = getUid();
+    System.arraycopy(uidBytes, 0, manufacturerData, 0, uidBytes.length);
+
+    builder.addManufacturerData(0xffff, manufacturerData);
+
     mAdvData = builder.build();
     mBluetoothAdapter.setName("Cassia Demo App");
     mAdvScanResponse = new AdvertiseData.Builder()
         .setIncludeDeviceName(true)
         .build();
+  }
+
+  // 获取uid：读取文件，没有的话则生成，并写入文件
+  public byte[] getUid() {
+    byte[] uid = getUidFromFile();
+    if (uid == null) {
+      uid = genRandMacBytes();
+      saveUidToFile(uid);
+    }
+    return uid;
+  }
+
+  // 生成mac地址，mac地址以1819开头
+  public byte[] genRandMacBytes(){
+    byte[] arr = new byte[6];
+    for (int i = 0; i < 6; i++) {
+      arr[i] = (byte)ThreadLocalRandom.current().nextInt(0, 255);
+    }
+    arr[0] = 0x18;
+    arr[1] = 0x19;
+    return arr;
+  }
+
+  // uid保存到文件
+  public void saveUidToFile(byte[] uid) {
+    try {
+      FileOutputStream outputStream = openFileOutput("cassiaDemoApp.key", Context.MODE_PRIVATE);
+      outputStream.write(uid);
+      Toast.makeText(this, "Save id success!", Toast.LENGTH_SHORT).show();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  // 从文件获取uid
+  public byte[] getUidFromFile() {
+    try {
+      FileInputStream inputStream = openFileInput("cassiaDemoApp.key");
+      byte[] bytes = new byte[6];
+      int hasRead = inputStream.read(bytes);
+      return bytes;
+    } catch (Exception e) {
+      return null;
+    }
   }
 
   @Override
@@ -373,6 +431,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
         if (mCurrentAdvertisingSet != null) {
           AdvertiseData.Builder builder = new AdvertiseData.Builder();
           mCurrentServiceFragment.addServiceData2AdvBuilder(builder);
+          builder.addManufacturerData(0xffff, manufacturerData);
           AdvertiseData advData = builder.build();
           mCurrentAdvertisingSet.setAdvertisingData(advData);
         }

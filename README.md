@@ -11,7 +11,9 @@ APP broadcast instructions:
 * The broadcast packet contains body temperature and heart rate data
 * Temperature data is a random number between 35.00 and 40.00
 * Heart rate data is a random number between 50 and 140
-* Example broadcast package: 0201020416372A5D07161C2A00000E07
+* Example broadcast package: 0201020EFFFFFF1819958D293D00000000000416372A5D07161C2A00000E07
+    * 1819958D293D: fixed mac, or uid, starts with 0x18, 0x19
+    * 00000000000: reserved manufacturer data
     * 5D: heart rate, 93
     * 0E07: temperature, 0x0E07 / 100 = 35.91℃
 * Example of Scan response package: 12094361737369612044656d6f20417070
