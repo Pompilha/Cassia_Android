@@ -21,20 +21,32 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.le.AdvertiseData;
+import android.graphics.Color;
+import android.graphics.DashPathEffect;
 import android.os.Bundle;
 import android.os.ParcelUuid;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
+
+import com.biansemao.widget.ThermometerView;
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
 
 public class CassiaDemoDeviceFragment extends ServiceFragment {
     private static final String TAG = CassiaDemoDeviceFragment.class.getCanonicalName();
@@ -42,7 +54,7 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
     private ArrayList<BluetoothGattService> mServices = new ArrayList<>();
 
     // Alert Notification Service UI
-    private EditText mEditTextNewAlert;
+    private TextView viewNewAlert;
 
     // Alert Notification Service
     private static final UUID ALERT_NOTIFICATION_SERVICE_UUID = UUID.fromString("00001811-0000-1000-8000-00805f9b34fb");
@@ -70,7 +82,8 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
    */
 
     // Alert Notification Service UI
-    private EditText mEditTextCurrentTime;
+    private TextView viewCurrentTime;
+    private TextView viewConnected;
 
     // Current Time Service
     private static final UUID CURRENT_TIME_SERVICE_UUID = UUID.fromString("00001805-0000-1000-8000-00805f9b34fb");
@@ -113,7 +126,7 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
   */
 
     // HeartRate Service UI
-    private EditText mEditTextHeartRateMeasurement;
+    private TextView viewHeartRateMeasurement;
 
     // HeartRate Service
     private static final UUID HEART_RATE_SERVICE_UUID = UUID.fromString("0000180D-0000-1000-8000-00805f9b34fb");
@@ -125,9 +138,14 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
     private BluetoothGattCharacteristic mHeartRateMeasurementCharacteristic;
     private boolean mHeartRateMeasurementNotifyOn = false; // 测量notify开关
     private int mHeartRateMeasurementValue = 60; // 实时心率
+    private int[] heartRateArray;
+    private int heartRateArrayIndex = 0;
 
     // HealthThermometer UI
-    private EditText mEditTextTemperatureMeasurement;
+    private ThermometerView viewTemperatureMeasurement;
+    private LineChart viewHeartRateChart;
+    List<Entry> viewHeartRateChartEntries;
+    public long viewHeartRateCounter;
 
     // HealthThermometer Service
     private static final UUID HEALTH_THERMOMETER_SERVICE_UUID = UUID.fromString("00001809-0000-1000-8000-00805f9b34fb");
@@ -165,7 +183,7 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
         // TODO: notify是否需要补充增加，按照SIG的定义notify属性是必须要定义的
         mCurrentTimeChar = new BluetoothGattCharacteristic(CURRENT_TIME_CHAR_UUID,
                 BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_WRITE,
-                BluetoothGattCharacteristic.PERMISSION_READ | BluetoothGattCharacteristic.PERMISSION_WRITE);
+                BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED_MITM | BluetoothGattCharacteristic.PERMISSION_WRITE);
         mCurrentTimeChar.setValue(mCurrentTimeCharValue);
         BluetoothGattService currentTimeService = new BluetoothGattService(CURRENT_TIME_SERVICE_UUID,
                 BluetoothGattService.SERVICE_TYPE_PRIMARY);
@@ -209,18 +227,72 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
         createAlertNotification();
     }
 
+    public void createHeartRateChart() {
+        viewHeartRateChartEntries = new ArrayList<Entry>();
+        viewHeartRateCounter = 0;
+        LineDataSet dataSet = new LineDataSet(viewHeartRateChartEntries, "");
+        dataSet.setDrawValues(false);
+        dataSet.setDrawCircles(false);
+        dataSet.setColor(Color.parseColor("#ffff696a"));
+        dataSet.setLineWidth(2);
+        LineData lineData = new LineData(dataSet);
+        viewHeartRateChart.setData(lineData);
+
+        viewHeartRateChart.getLegend().setEnabled(false);
+        viewHeartRateChart.getDescription().setEnabled(false);
+        XAxis xAxis = viewHeartRateChart.getXAxis();
+        xAxis.setTextColor(Color.parseColor("#ffbebebe"));
+        xAxis.setAxisLineColor(Color.parseColor("#ffbebebe"));
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setDrawAxisLine(true);
+        xAxis.setDrawGridLines(false);
+        xAxis.setAxisLineWidth(1f);
+        YAxis leftYAxis = viewHeartRateChart.getAxisLeft();
+        YAxis rightYAxis = viewHeartRateChart.getAxisRight();
+        leftYAxis.setDrawAxisLine(false);
+        rightYAxis.setEnabled(false);
+        leftYAxis.setAxisMinimum(0);
+        leftYAxis.setAxisMaximum(200);
+        leftYAxis.setDrawTopYLabelEntry(true);
+        leftYAxis.setGranularity(50);
+        leftYAxis.setAxisLineColor(Color.parseColor("#ffbebebe"));
+        leftYAxis.setTextColor(Color.parseColor("#ffbebebe"));
+        leftYAxis.setGridDashedLine(new DashPathEffect(new float[]{10,5,10,5},0));
+        leftYAxis.setZeroLineColor(Color.parseColor("#ffbebebe"));
+    }
+
+    public void updateHeartRateChart(long timestamp, int heartrate) {
+        if (viewHeartRateChartEntries.size() > 120) {
+            viewHeartRateChartEntries.remove(0);
+        }
+        viewHeartRateChartEntries.add(new Entry(viewHeartRateCounter++, heartrate));
+        LineDataSet dataSet = new LineDataSet(viewHeartRateChartEntries, "");
+        dataSet.setDrawValues(false);
+        dataSet.setDrawCircles(false);
+        dataSet.setColor(Color.parseColor("#ffff696a"));
+        dataSet.setLineWidth(2);
+        LineData lineData = new LineData(dataSet);
+        viewHeartRateChart.setData(lineData);
+        viewHeartRateChart.notifyDataSetChanged();
+        viewHeartRateChart.invalidate(); // refresh
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
+        heartRateArray = new int[]{82,92,91,87,87,85,85,86,87,87,84,82,83,81,84,85,84,82,83,83,81,79,80,83,85,86,85,76,78,82,85,85,83,83,84,85,85,86,86,85,83,83,84,88,85,82,83,83,84,75,79,82,86,87,84,85,84,86,86,86,85,85,86,86,83,84,85,77,81,81,83,84,86,85,83,86,89,89,87,88,87,86,85,84,82,82,82,81,78,80,83,81,81,85,87,85,84,84,83,83,84,84,85,86,85,86,87,87,85,86,84,87,85,86,88,87,86,84,85,88};
         // 获取各个控件并注册事件
         View view = inflater.inflate(R.layout.fragment_cassia_demo_device, container, false);
-        mEditTextHeartRateMeasurement = (EditText) view.findViewById(R.id.editText_heartRateMeasurementValue);
-        mEditTextTemperatureMeasurement = (EditText) view.findViewById(R.id.editText_temperatureMeasurementValue);
-        mEditTextCurrentTime = (EditText) view.findViewById(R.id.editText_currentTimeValue);
-        mEditTextNewAlert = (EditText) view.findViewById(R.id.editText_newAlertValue);
+        viewHeartRateMeasurement = (TextView) view.findViewById(R.id.viewHeartRateMeasurementValue);
+        viewTemperatureMeasurement = (ThermometerView) view.findViewById(R.id.tv_thermometer);
+        viewCurrentTime = (TextView) view.findViewById(R.id.viewCurrentTimeValue);
+        viewConnected = (TextView) view.findViewById(R.id.viewConnected);
+        viewNewAlert = (TextView) view.findViewById(R.id.viewNewAlertValue);
+        viewHeartRateChart = (LineChart) view.findViewById(R.id.viewHeartRateChart);
 
         // 设置控件默认值
+        createHeartRateChart();
 
         // 其他初始化动作
         startDataUpdateTimer();
@@ -232,7 +304,7 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
     private Runnable mEditTextHeartRateMeasurementUpdater = new Runnable() {
         @Override
         public void run() {
-            mEditTextHeartRateMeasurement.setText(Integer.toString(mHeartRateMeasurementValue));
+            viewHeartRateMeasurement.setText(Integer.toString(mHeartRateMeasurementValue));
         }
     };
 
@@ -245,7 +317,7 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
             byte[] yearBytes = Arrays.copyOfRange(payload, 0, 2);
             String dateTime = String.format("%4d-%02d-%02d %02d:%02d:%02d",
                     Utils.bytes2shortLE(yearBytes), payload[2], payload[3], payload[4], payload[5], payload[6]);
-            mEditTextCurrentTime.setText(dateTime);
+            viewCurrentTime.setText(dateTime);
         }
     };
 
@@ -256,7 +328,7 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
             byte[] payload = new byte[mNewAlertCharValue.length - 2];
             System.arraycopy(mNewAlertCharValue, 2, payload, 0, payload.length);
             String sms = new String(payload, StandardCharsets.UTF_8);
-            mEditTextNewAlert.setText(sms);
+            viewNewAlert.setText(sms);
         }
     };
 
@@ -265,7 +337,7 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
         @Override
         public void run() {
             float value = (float) mTemperatureMeasurementValue / 100;
-            mEditTextTemperatureMeasurement.setText(Float.toString(value));
+            viewTemperatureMeasurement.setValueAndStartAnim(value);
         }
     };
 
@@ -309,7 +381,13 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
 
     // 心率定时器处理: 生成随机数 -> gatt更新 -> 更新控件 -> 发送通知
     private void heartRateTimerHandler() {
-        mHeartRateMeasurementValue = Utils.getRandomRange(50, 140);
+//        mHeartRateMeasurementValue = Utils.getRandomRange(50, 140);
+        if (heartRateArrayIndex >= heartRateArray.length) {
+            heartRateArrayIndex = 0;
+        }
+        mHeartRateMeasurementValue = heartRateArray[heartRateArrayIndex++];
+        long timestamp = System.currentTimeMillis();
+        updateHeartRateChart(timestamp, mHeartRateMeasurementValue);
         gattSetHeartRateMeasurementValue(mHeartRateMeasurementValue);
         getActivity().runOnUiThread(mEditTextHeartRateMeasurementUpdater);
         if (mHeartRateMeasurementNotifyOn) { // 只有开启notify时才上报数据
@@ -319,7 +397,7 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
 
     // 体温定时器处理：生成随机数 -> gatt更新 -> 更新控件 -> 发送通知
     private void temperatureTimerHandler() {
-        mTemperatureMeasurementValue = Utils.getRandomRange(3500, 4000);
+        mTemperatureMeasurementValue = Utils.getRandomRange(3660, 3720);
         gattSetTemperatureMeasurementValue(mTemperatureMeasurementValue);
         getActivity().runOnUiThread(mEditTextTemperatureMeasurementUpdater);
         if (mTemperatureMeasurementNotifyOn) {
@@ -372,6 +450,13 @@ public class CassiaDemoDeviceFragment extends ServiceFragment {
     @Override
     public BluetoothGattService[] getBluetoothGattServices() {
         return mServices.toArray(new BluetoothGattService[mServices.size()]);
+    }
+
+    @Override
+    public void updateUIConnected(String connectedTo) {
+        if (viewConnected != null) {
+            viewConnected.setText(connectedTo);
+        }
     }
 
     @Override

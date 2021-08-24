@@ -25,6 +25,9 @@ import android.os.ParcelUuid;
 
 public abstract class ServiceFragment extends Fragment{
 
+  // 更新UI上的连接信息
+  public abstract void updateUIConnected(String connectedTo);
+
   // 设备添加指定的serviceData到广播包中
   public abstract void addServiceData2AdvBuilder(AdvertiseData.Builder builder);
 

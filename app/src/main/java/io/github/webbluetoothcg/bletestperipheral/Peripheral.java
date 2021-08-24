@@ -44,11 +44,17 @@ import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 import io.github.webbluetoothcg.bletestperipheral.ServiceFragment.ServiceFragmentDelegate;
 
@@ -63,8 +69,6 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
   private static final UUID CLIENT_CHARACTERISTIC_CONFIGURATION_UUID = UUID
       .fromString("00002902-0000-1000-8000-00805f9b34fb");
 
-  private TextView mAdvStatus;
-  private TextView mConnectionStatus;
   private ServiceFragment mCurrentServiceFragment;
   private HashSet<BluetoothDevice> mBluetoothDevices;
   private BluetoothManager mBluetoothManager;
@@ -78,6 +82,7 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
   private AdvertisingSet mCurrentAdvertisingSet;
   private BluetoothGattService[] mServices;
   private boolean[] mIsServiceAdded;
+  private byte[] manufacturerData; // 11B
 
   private final AdvertisingSetCallback mAdvSetCallback = new AdvertisingSetCallback() {
     @Override
@@ -112,44 +117,6 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
     }
   };
 
-  private final AdvertiseCallback mAdvCallback = new AdvertiseCallback() {
-    @Override
-    public void onStartFailure(int errorCode) {
-      super.onStartFailure(errorCode);
-      Log.e(TAG, "Not broadcasting: " + errorCode);
-      int statusText;
-      switch (errorCode) {
-        case ADVERTISE_FAILED_ALREADY_STARTED:
-          statusText = R.string.status_advertising;
-          Log.w(TAG, "App was already advertising");
-          break;
-        case ADVERTISE_FAILED_DATA_TOO_LARGE:
-          statusText = R.string.status_advDataTooLarge;
-          break;
-        case ADVERTISE_FAILED_FEATURE_UNSUPPORTED:
-          statusText = R.string.status_advFeatureUnsupported;
-          break;
-        case ADVERTISE_FAILED_INTERNAL_ERROR:
-          statusText = R.string.status_advInternalError;
-          break;
-        case ADVERTISE_FAILED_TOO_MANY_ADVERTISERS:
-          statusText = R.string.status_advTooManyAdvertisers;
-          break;
-        default:
-          statusText = R.string.status_notAdvertising;
-          Log.wtf(TAG, "Unhandled error: " + errorCode);
-      }
-      mAdvStatus.setText(statusText);
-    }
-
-    @Override
-    public void onStartSuccess(AdvertiseSettings settingsInEffect) {
-      super.onStartSuccess(settingsInEffect);
-      Log.v(TAG, "Broadcasting");
-      mAdvStatus.setText(R.string.status_advertising);
-    }
-  };
-
   private BluetoothGattServer mGattServer;
   private final BluetoothGattServerCallback mGattServerCallback = new BluetoothGattServerCallback() {
     @Override
@@ -181,29 +148,10 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
           mBluetoothDevices.add(device);
           updateConnectedDevicesStatus();
           Log.v(TAG, "Connected to device: " + device.getAddress());
-
-          /* demo需要同时配置数据采集和基于建连的方式，所以还是需要进行广播的
-          // 连接后停止广播
-          if (mAdvertiser != null) {
-            cancelTimer();
-            mAdvertiser.stopAdvertisingSet(mAdvSetCallback);
-            mAdvStatus.setText(R.string.status_notAdvertising);
-          }
-          */
         } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
           mBluetoothDevices.remove(device);
           updateConnectedDevicesStatus();
           Log.v(TAG, "Disconnected from device");
-
-          /* demo需要同时配置数据采集和基于建连的方式，所以还是需要进行广播的
-          // 断连后开启广播
-          if (mAdvertiser != null) {
-            resetTimer();
-            mAdvertiser.startAdvertisingSet(mAdvSetParameters, mAdvData, mAdvScanResponse, null, null,
-                    0, 0, mAdvSetCallback);
-            mAdvStatus.setText(R.string.status_advertising);
-          }
-          */
         }
       } else {
         mBluetoothDevices.remove(device);
@@ -321,44 +269,27 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
     }
   };
 
-  /////////////////////////////////
-  ////// Lifecycle Callbacks //////
-  /////////////////////////////////
-
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_peripherals);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-    mAdvStatus = (TextView) findViewById(R.id.textView_advertisingStatus);
-    mConnectionStatus = (TextView) findViewById(R.id.textView_connectionStatus);
     mBluetoothDevices = new HashSet<>();
     mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
     mBluetoothAdapter = mBluetoothManager.getAdapter();
-
-    // If we are not being restored from a previous state then create and add the fragment.
-    if (savedInstanceState == null) {
-      int peripheralIndex = getIntent().getIntExtra(Peripherals.EXTRA_PERIPHERAL_INDEX,
-          /* default */ -1);
-      if (peripheralIndex == 0) {
-        mCurrentServiceFragment = new CassiaDemoDeviceFragment();
-      } else {
-        Log.wtf(TAG, "Service doesn't exist");
-      }
-      getFragmentManager()
-          .beginTransaction()
-          .add(R.id.fragment_container, mCurrentServiceFragment, CURRENT_FRAGMENT_TAG)
-          .commit();
-    } else {
-      mCurrentServiceFragment = (ServiceFragment) getFragmentManager()
-          .findFragmentByTag(CURRENT_FRAGMENT_TAG);
-    }
+    if (mBluetoothAdapter != null) mBluetoothAdapter.setName("Cassia Demo App");
+    mCurrentServiceFragment = new CassiaDemoDeviceFragment();
+    getFragmentManager()
+            .beginTransaction()
+            .add(R.id.fragment_container, mCurrentServiceFragment, CURRENT_FRAGMENT_TAG)
+            .commit();
 
     mServices = mCurrentServiceFragment.getBluetoothGattServices(); // 获取所有的导出services
     mIsServiceAdded = new boolean[mServices.length];
     for (int index = 0; index < mServices.length; index++) {
       mIsServiceAdded[index] = false;
     }
+
     mAdvSettings = new AdvertiseSettings.Builder()
         .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
         .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
@@ -372,11 +303,63 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       .setTxPowerLevel(1).build();
     AdvertiseData.Builder builder = new AdvertiseData.Builder();
     mCurrentServiceFragment.addServiceData2AdvBuilder(builder);
+
+    // 增加固定uid, 前6个字节
+    manufacturerData = new byte[11];
+    byte[] uidBytes = getUid();
+    System.arraycopy(uidBytes, 0, manufacturerData, 0, uidBytes.length);
+
+    builder.addManufacturerData(0xffff, manufacturerData);
+
     mAdvData = builder.build();
     mBluetoothAdapter.setName("Cassia Demo App");
     mAdvScanResponse = new AdvertiseData.Builder()
         .setIncludeDeviceName(true)
         .build();
+  }
+
+  // 获取uid：读取文件，没有的话则生成，并写入文件
+  public byte[] getUid() {
+    byte[] uid = getUidFromFile();
+    if (uid == null) {
+      uid = genRandMacBytes();
+      saveUidToFile(uid);
+    }
+    return uid;
+  }
+
+  // 生成mac地址，mac地址以1819开头
+  public byte[] genRandMacBytes(){
+    byte[] arr = new byte[6];
+    for (int i = 0; i < 6; i++) {
+      arr[i] = (byte)ThreadLocalRandom.current().nextInt(0, 255);
+    }
+    arr[0] = 0x18;
+    arr[1] = 0x19;
+    return arr;
+  }
+
+  // uid保存到文件
+  public void saveUidToFile(byte[] uid) {
+    try {
+      FileOutputStream outputStream = openFileOutput("cassiaDemoApp.key", Context.MODE_PRIVATE);
+      outputStream.write(uid);
+      Toast.makeText(this, "Save id success!", Toast.LENGTH_SHORT).show();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  // 从文件获取uid
+  public byte[] getUidFromFile() {
+    try {
+      FileInputStream inputStream = openFileInput("cassiaDemoApp.key");
+      byte[] bytes = new byte[6];
+      int hasRead = inputStream.read(bytes);
+      return bytes;
+    } catch (Exception e) {
+      return null;
+    }
   }
 
   @Override
@@ -428,9 +411,6 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       mAdvertiser.startAdvertisingSet(mAdvSetParameters, mAdvData, mAdvScanResponse, null, null,
               0, 0, mAdvSetCallback);
       startAdDataUpdateTimer();
-      mAdvStatus.setText(R.string.status_advertising);
-    } else {
-      mAdvStatus.setText(R.string.status_noLeAdv);
     }
   }
 
@@ -451,9 +431,9 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       @Override
       public void run() {
         if (mCurrentAdvertisingSet != null) {
-//          Log.i(TAG, "adv service data:" + mCurrentServiceFragment.getServiceData()[0]);
           AdvertiseData.Builder builder = new AdvertiseData.Builder();
           mCurrentServiceFragment.addServiceData2AdvBuilder(builder);
+          builder.addManufacturerData(0xffff, manufacturerData);
           AdvertiseData advData = builder.build();
           mCurrentAdvertisingSet.setAdvertisingData(advData);
         }
@@ -488,11 +468,8 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       mGattServer.close();
     }
     if (mBluetoothAdapter.isEnabled() && mAdvertiser != null) {
-      // If stopAdvertising() gets called before close() a null
-      // pointer exception is raised.
       cancelTimer();
       mAdvertiser.stopAdvertisingSet(mAdvSetCallback);
-      mAdvStatus.setText(R.string.status_notAdvertising);
     }
     resetStatusViews();
   }
@@ -509,24 +486,21 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
   }
 
   private void resetStatusViews() {
-    mAdvStatus.setText(R.string.status_notAdvertising);
     updateConnectedDevicesStatus();
   }
 
   private void updateConnectedDevicesStatus() {
-    final String message = getString(R.string.status_devicesConnected) + " "
-        + mBluetoothManager.getConnectedDevices(BluetoothGattServer.GATT).size();
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        mConnectionStatus.setText(message);
+        if (mCurrentServiceFragment != null) {
+          List<BluetoothDevice> list = mBluetoothManager.getConnectedDevices(BluetoothGattServer.GATT);
+          mCurrentServiceFragment.updateUIConnected(list.size() > 0 ? ("Connected To " + list.get(0).getAddress()) : "");
+        }
       }
     });
   }
 
-  ///////////////////////
-  ////// Bluetooth //////
-  ///////////////////////
   public static BluetoothGattDescriptor getClientCharacteristicConfigurationDescriptor() {
     BluetoothGattDescriptor descriptor = new BluetoothGattDescriptor(
         CLIENT_CHARACTERISTIC_CONFIGURATION_UUID,
@@ -555,6 +529,9 @@ public class Peripheral extends Activity implements ServiceFragmentDelegate {
       // Make sure bluetooth is enabled.
       Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
       startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+      if (mBluetoothAdapter != null) {
+        mBluetoothAdapter.setName("Cassia Demo App");
+      }
     }
   }
   private void disconnectFromDevices() {
